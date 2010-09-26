@@ -1,0 +1,14 @@
+prefix=raybuild_shared
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: libavcodec
+Description: FFmpeg codec library
+Version: 52.66.0
+Requires: 
+Requires.private: libavutil = 50.14.0
+Conflicts:
+Libs: -L${libdir} -lavcodec 
+Libs.private: -lpsapi -lm -lmp3lame -lm -lopencore-amrnb -lm -lopencore-amrwb -lm -lws2_32 -lavicap32
+Cflags: -I${includedir}

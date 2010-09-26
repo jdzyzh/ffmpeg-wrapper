@@ -1,0 +1,1 @@
+#define FFMPEG_DATADIR "/usr/local/share/ffmpeg"

@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFMpegWrapperTest", "FFMpegWrapperTest\FFMpegWrapperTest.vcproj", "{1B354F22-2DF2-4862-B5B9-8E7CF27ABD5D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFMpegWrapper", "FFMpegWrapper.vcproj", "{5B02ACCA-0880-4A31-B4F8-6D35648CD751}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1B354F22-2DF2-4862-B5B9-8E7CF27ABD5D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1B354F22-2DF2-4862-B5B9-8E7CF27ABD5D}.Debug|Win32.Build.0 = Debug|Win32
+		{1B354F22-2DF2-4862-B5B9-8E7CF27ABD5D}.Release|Win32.ActiveCfg = Release|Win32
+		{1B354F22-2DF2-4862-B5B9-8E7CF27ABD5D}.Release|Win32.Build.0 = Release|Win32
+		{5B02ACCA-0880-4A31-B4F8-6D35648CD751}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5B02ACCA-0880-4A31-B4F8-6D35648CD751}.Debug|Win32.Build.0 = Debug|Win32
+		{5B02ACCA-0880-4A31-B4F8-6D35648CD751}.Release|Win32.ActiveCfg = Release|Win32
+		{5B02ACCA-0880-4A31-B4F8-6D35648CD751}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
