@@ -1,0 +1,19 @@
+./configure \
+--extra-cflags=-DFFMPEG_WIN32 \
+--disable-mmx \
+--disable-ffmpeg \
+--disable-ffplay \
+--disable-ffserver \
+--enable-memalign-hack \
+--target-os=mingw32ce \
+--arch=arm \
+--cpu=armv4t \
+--enable-cross-compile \
+--cross-prefix=arm-mingw32ce- \
+--enable-shared \
+--disable-static \
+--enable-version3 \
+--enable-small \
+--enable-libopencore-amrnb \
+--disable-devices \
+--prefix=raybuild_ce_shared
