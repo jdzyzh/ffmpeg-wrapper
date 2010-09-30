@@ -125,4 +125,5 @@ void FFMpegCanvas::clear()
 	AVPicture *picConverted = conv.convertVideo(&rgbPic);
 	draw(m_fmt, picConverted, 0,0, m_w, m_h);
 	avpicture_free(&rgbPic);
+	free(rgb);
 }
