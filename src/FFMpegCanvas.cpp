@@ -115,7 +115,6 @@ void FFMpegCanvas::clear()
 		}
 	}
 	AVPicture rgbPic;
-	avpicture_alloc(&rgbPic,PIX_FMT_RGB24,m_w,m_h);
 	rgbPic.data[0] = rgb;
 	rgbPic.linesize[0] = m_w * 3;
 	
@@ -124,6 +123,5 @@ void FFMpegCanvas::clear()
 	
 	AVPicture *picConverted = conv.convertVideo(&rgbPic);
 	draw(m_fmt, picConverted, 0,0, m_w, m_h);
-	avpicture_free(&rgbPic);
-	free(rgb);
+	free(rgb);	
 }
