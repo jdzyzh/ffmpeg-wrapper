@@ -13,6 +13,11 @@ FFMpegConverter::FFMpegConverter(
 	{
 		scaleBufSize =  avpicture_get_size(_f2,_w2,_h2);
 		scaleBuf = (unsigned char*)malloc(scaleBufSize);
+		if (scaleBuf == NULL)
+		{
+			printf("oops!!! scaleBuf == NULL!\n");
+		}
+		
 		m_bAllocBuf = true;
 	}
 	else 
