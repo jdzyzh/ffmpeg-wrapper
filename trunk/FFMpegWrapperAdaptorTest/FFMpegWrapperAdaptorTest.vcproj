@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="FFMpegWrapper"
-	ProjectGUID="{5B02ACCA-0880-4A31-B4F8-6D35648CD751}"
-	RootNamespace="FFMpegWrapper"
+	Name="FFMpegWrapperAdaptorTest"
+	ProjectGUID="{27D8C15C-2939-4E4E-BAB2-CBC81F001100}"
+	RootNamespace="FFMpegWrapperAdaptorTest"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -17,9 +17,9 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ProjectDir)$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="1"
 			CharacterSet="1"
 			>
 			<Tool
@@ -40,8 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="ffmpeg_build\win32\include;&quot;sdl_build\win32\SDL-1.2.14\include&quot;;include\win32;include"
-				PreprocessorDefinitions="__STDC_CONSTANT_MACROS;__STDC_LIMIT_MACROS;WIN32;_DEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -60,13 +59,18 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				LinkLibraryDependencies="false"
-				AdditionalDependencies="avcodec-52.lib avutil-50.lib avformat-52.lib swscale-0.lib sdl.lib"
-				AdditionalLibraryDirectories="ffmpeg_build\win32\bin;&quot;sdl_build\win32\SDL-1.2.14\lib&quot;"
+				Name="VCLinkerTool"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\debug"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -78,6 +82,12 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -85,7 +95,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -106,7 +116,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -123,10 +133,19 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				LinkIncremental="1"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -136,6 +155,12 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -151,69 +176,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\src\EncodeProfile.cpp"
+				RelativePath=".\FFMpegWrapperAdaptorTest.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\FFMpegAudioConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegCanvas.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegCodecDecoder.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)1.obj"
-						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)1.obj"
-						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegCodecEncoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegDecoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegEncoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegFifo.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegReSampler.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegVideoDecoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\myFFMpeg.cpp"
+				RelativePath=".\stdafx.cpp"
 				>
 			</File>
 		</Filter>
@@ -223,47 +190,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\include\AVInfo.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\EncodeProfile.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\FFMpegAudioConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\FFMpegCanvas.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\FFMpegCodecDecoder.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\FFMpegCodecEncoder.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\FFMpegConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\FFMpegDecoder.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\FFMpegEncoder.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\FFMpegFifo.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\FFMpegReSampler.h"
+				RelativePath=".\stdafx.h"
 				>
 			</File>
 		</Filter>
