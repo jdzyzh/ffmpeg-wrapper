@@ -207,7 +207,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\SDLWrapper\Debug\SDLWrapper.lib"
+			RelativePath="..\..\..\private\SDLWrapper\Debug\SDLWrapper.lib"
 			>
 		</File>
 	</Files>

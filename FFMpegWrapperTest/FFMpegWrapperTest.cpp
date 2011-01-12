@@ -7,12 +7,15 @@
 #include <FFMpegDecoder.h>
 #include <FFMpegEncoder.h>
 #include <FFMpegCodecDecoder.h>
+#include <FFMpegCodecEncoder.h>
 #include <FFMpegConverter.h>
 #include <FFMpegCanvas.h>
 #include <vector>
 #include <windows.h>
 #include <SDLWrapper.h>
-
+#include <FFMpegCodecEncoder.h>
+#include <FFMpegAudioConverter.h>
+#include <fstream>
 #undef main
 
 
@@ -532,9 +535,352 @@ int myffmpeg_main()
 
 }
 
+int playVideoFile(const char* path)
+{
+	FFMpegDecoder dec;
+	AVInfo *info = dec.openFile((char*)path);
+	while (true)
+	{
+		AVPacket *pkt = dec.readPacket();
+		if (pkt == NULL)
+			break;
+		if (pkt->stream_index != info->videoStreamIdx)
+			continue;
 
+		printf("flag=%d\n",pkt->flags);
+		AVFrame *frame = dec.decodeVideo(pkt);
+		if (frame != NULL)
+		{
+			printf("got frame,frame type=%d\n",frame->pict_type);
+		}
+		else
+			printf("no frame available\n");
+
+		getchar();
+	}
+	return 0;
+}
+
+int testAudioConvert()
+{
+	FFMpegAudioConverter conv_32to16;
+	conv_32to16.Setup(2,2,44100,44100,SAMPLE_FMT_S16,SAMPLE_FMT_S32);
+	
+	FILE *s32pcm = fopen("d:\\temp\\test_s32.pcm","rb");
+	FILE *s16pcm = fopen("d:\\temp\\result_s16.pcm","wb");
+
+	short samples_in[65536];
+	short samples_out[65536];
+
+	while (true)
+	{
+		int bytesRead = fread(samples_in,1,65536,s32pcm);
+		if (bytesRead <= 0)
+			break;
+
+		int nSamples = bytesRead / (2 * 32 / 8);
+		conv_32to16.Resample(samples_out,samples_in,nSamples);
+		fwrite(samples_out,1,nSamples * 4,s16pcm);
+	}
+	fclose(s32pcm);
+	fclose(s16pcm);
+
+	return 0;
+}
+
+typedef struct 
+{
+	int size;
+	char* dataBegin;
+	char* data;
+}MyMemBuf;
+
+int ReadFunc(void* opaque,uint8_t *buf,int buf_size)
+{
+	MyMemBuf *memBuf = (MyMemBuf*)opaque;
+	int bytesAvailable = memBuf->size - (memBuf->data - memBuf->dataBegin);
+	int copySize = bytesAvailable >= buf_size ? buf_size : bytesAvailable;
+
+	memcpy(buf,memBuf->data,copySize);
+	memBuf->data += copySize;
+	return copySize;
+}
+
+int64_t SeekFunc(void* opaque,int64_t offset,int whence)
+{
+	MyMemBuf *memBuf = (MyMemBuf*)opaque;
+
+	if (whence == AVSEEK_SIZE)
+	{
+		return memBuf->size;
+	}
+	else if (whence == SEEK_SET)
+	{
+		if (offset <= memBuf->size)
+			memBuf->data = memBuf->dataBegin + offset;
+		else
+			return -1;
+	}
+	else if (whence == SEEK_END)
+	{
+		char* ptr = memBuf->dataBegin + memBuf->size + offset;
+		if (ptr >= memBuf->dataBegin && ptr <= memBuf->dataBegin + memBuf->size)
+			memBuf->data = ptr;
+		else
+			return -1;
+	}
+	else if (whence == SEEK_CUR)
+	{
+		char* ptr = memBuf->data + offset;
+		if (ptr >= memBuf->dataBegin && ptr <= memBuf->dataBegin + memBuf->size)
+			memBuf->data = ptr;
+		else
+			return -1;
+	}
+	else
+		return -1;
+
+	return memBuf->data - memBuf->dataBegin;
+}
+
+int testWavParser()
+{
+	FILE *fout = fopen("d:\\temp\\convertResule.wav","wb");
+	FILE *f = fopen("d:\\temp\\test_s32.wav","rb");
+	
+	fseek(f,0,SEEK_END);
+	int fsize = ftell(f);
+	fseek(f,0,SEEK_SET);
+	
+	FFMpegAudioConverter conv;
+	
+	int bufInLen = 65536;
+	char *bufIn = (char*)malloc(bufInLen);
+	int bufOutLen = bufInLen * 4;
+	char *bufOut = (char*)malloc(bufOutLen);
+
+	fread(bufIn,1,bufInLen,f);
+	conv.SetupInputByWavHeader(bufIn,128);
+
+	//write wav header
+	char wavHeader[44];
+	unsigned long ulSizeFake = 1024*1024*50;
+	FFMpegAudioConverter::GenWavHeader(wavHeader,ulSizeFake,2,44100,16);
+	fwrite(wavHeader,1,44,fout);
+	//
+
+	//write pcm data
+	while(true)
+	{
+		int bytesRead = fread(bufIn,1,bufInLen,f);
+		if (bytesRead <= 0)
+			break;
+
+		int bytesConverted = conv.DecodeAndResample(bufIn,bytesRead,bufOut,bufOutLen);
+		fwrite(bufOut,1,bytesConverted,fout);
+	}
+	fclose(f);
+	fclose(fout);
+	
+	return 0;
+}
+
+#define PIXELSIZE3				3
+#define PIXELSIZE4				4
+#define TWO_PIXELSIZE4			8
+#define TWO_BYTE				2
+
+#define BY2U(BB, YY)			BY2Utable[(BB - YY) + 255] 
+#define RY2V(RR, YY)			RY2Vtable[(RR - YY) + 255] 
+
+unsigned char BY2Utable[511] =
+{ 
+	3, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7,
+	8, 8, 9, 9, 10, 10, 11, 11, 12, 12,
+	13, 13, 14, 14, 15, 15, 16, 16, 17, 17,
+	18, 18, 19, 19, 20, 20, 21, 21, 22, 22,
+	23, 23, 24, 24, 25, 25, 26, 26, 27, 27,
+	28, 28, 29, 29, 30, 30, 31, 31, 32, 32,
+	33, 33, 34, 34, 34, 35, 35, 36, 36, 37,
+	37, 38, 38, 39, 39, 40, 40, 41, 41, 42,
+	42, 43, 43, 44, 44, 45, 45, 46, 46, 47,
+	47, 48, 48, 49, 49, 50, 50, 51, 51, 52,
+	52, 53, 53, 54, 54, 55, 55, 56, 56, 57,
+	57, 58, 58, 59, 59, 60, 60, 61, 61, 62,
+	62, 63, 63, 64, 64, 65, 65, 66, 66, 66,
+	67, 67, 68, 68, 69, 69, 70, 70, 71, 71,
+	72, 72, 73, 73, 74, 74, 75, 75, 76, 76,
+	77, 77, 78, 78, 79, 79, 80, 80, 81, 81,
+	82, 82, 83, 83, 84, 84, 85, 85, 86, 86,
+	87, 87, 88, 88, 89, 89, 90, 90, 91, 91,
+	92, 92, 93, 93, 94, 94, 95, 95, 96, 96,
+	97, 97, 97, 98, 98, 99, 99, 100, 100, 101,
+	101, 102, 102, 103, 103, 104, 104, 105, 105, 106,
+	106, 107, 107, 108, 108, 109, 109, 110, 110, 111,
+	111, 112, 112, 113, 113, 114, 114, 115, 115, 116,
+	116, 117, 117, 118, 118, 119, 119, 120, 120, 121,
+	121, 122, 122, 123, 123, 124, 124, 125, 125, 126,
+	126, 127, 127, 128, 128, 128, 129, 129, 130, 130,
+	131, 131, 132, 132, 133, 133, 134, 134, 135, 135,
+	136, 136, 137, 137, 138, 138, 139, 139, 140, 140,
+	141, 141, 142, 142, 143, 143, 144, 144, 145, 145,
+	146, 146, 147, 147, 148, 148, 149, 149, 150, 150,
+	151, 151, 152, 152, 153, 153, 154, 154, 155, 155,
+	156, 156, 157, 157, 158, 158, 159, 159, 159, 160,
+	160, 161, 161, 162, 162, 163, 163, 164, 164, 165,
+	165, 166, 166, 167, 167, 168, 168, 169, 169, 170,
+	170, 171, 171, 172, 172, 173, 173, 174, 174, 175,
+	175, 176, 176, 177, 177, 178, 178, 179, 179, 180,
+	180, 181, 181, 182, 182, 183, 183, 184, 184, 185,
+	185, 186, 186, 187, 187, 188, 188, 189, 189, 190,
+	190, 191, 191, 191, 192, 192, 193, 193, 194, 194,
+	195, 195, 196, 196, 197, 197, 198, 198, 199, 199,
+	200, 200, 201, 201, 202, 202, 203, 203, 204, 204,
+	205, 205, 206, 206, 207, 207, 208, 208, 209, 209,
+	210, 210, 211, 211, 212, 212, 213, 213, 214, 214,
+	215, 215, 216, 216, 217, 217, 218, 218, 219, 219,
+	220, 220, 221, 221, 222, 222, 222, 223, 223, 224,
+	224, 225, 225, 226, 226, 227, 227, 228, 228, 229,
+	229, 230, 230, 231, 231, 232, 232, 233, 233, 234,
+	234, 235, 235, 236, 236, 237, 237, 238, 238, 239,
+	239, 240, 240, 241, 241, 242, 242, 243, 243, 244,
+	244, 245, 245, 246, 246, 247, 247, 248, 248, 249,
+	249, 250, 250, 251, 251, 252, 252, 253, 253
+};
+
+
+unsigned char RY2Vtable[511] =
+{
+	161, 162, 163, 164, 165, 166, 167, 167, 168, 169, 170,
+	171, 172, 173, 174, 174, 175, 176, 177, 178, 179,
+	180, 181, 181, 182, 183, 184, 185, 186, 187, 188,
+	189, 189, 190, 191, 192, 193, 194, 195, 196, 196,
+	197, 198, 199, 200, 201, 202, 203, 203, 204, 205,
+	206, 207, 208, 209, 210, 210, 211, 212, 213, 214,
+	215, 216, 217, 217, 218, 219, 220, 221, 222, 223,
+	224, 224, 225, 226, 227, 228, 229, 230, 231, 231,
+	232, 233, 234, 235, 236, 237, 238, 239, 239, 240,
+	241, 242, 243, 244, 245, 246, 246, 247, 248, 249,
+	250, 251, 252, 253, 253, 254, 255, 0, 0, 1,
+	2, 3, 3, 4, 5, 6, 7, 8, 9, 10,
+	10, 11, 12, 13, 14, 15, 16, 17, 17, 18,
+	19, 20, 21, 22, 23, 24, 24, 25, 26, 27,
+	28, 29, 30, 31, 32, 32, 33, 34, 35, 36,
+	37, 38, 39, 39, 40, 41, 42, 43, 44, 45,
+	46, 46, 47, 48, 49, 50, 51, 52, 53, 53,
+	54, 55, 56, 57, 58, 59, 60, 60, 61, 62,
+	63, 64, 65, 66, 67, 67, 68, 69, 70, 71,
+	72, 73, 74, 74, 75, 76, 77, 78, 79, 80,
+	81, 82, 82, 83, 84, 85, 86, 87, 88, 89,
+	89, 90, 91, 92, 93, 94, 95, 96, 96, 97,
+	98, 99, 100, 101, 102, 103, 103, 104, 105, 106,
+	107, 108, 109, 110, 110, 111, 112, 113, 114, 115,
+	116, 117, 117, 118, 119, 120, 121, 122, 123, 124,
+	124, 125, 126, 127, 128, 129, 130, 131, 132, 132,
+	133, 134, 135, 136, 137, 138, 139, 139, 140, 141,
+	142, 143, 144, 145, 146, 146, 147, 148, 149, 150,
+	151, 152, 153, 153, 154, 155, 156, 157, 158, 159,
+	160, 160, 161, 162, 163, 164, 165, 166, 167, 167,
+	168, 169, 170, 171, 172, 173, 174, 174, 175, 176,
+	177, 178, 179, 180, 181, 182, 182, 183, 184, 185,
+	186, 187, 188, 189, 189, 190, 191, 192, 193, 194,
+	195, 196, 196, 197, 198, 199, 200, 201, 202, 203,
+	203, 204, 205, 206, 207, 208, 209, 210, 210, 211,
+	212, 213, 214, 215, 216, 217, 217, 218, 219, 220,
+	221, 222, 223, 224, 224, 225, 226, 227, 228, 229,
+	230, 231, 232, 232, 233, 234, 235, 236, 237, 238,
+	239, 239, 240, 241, 242, 243, 244, 245, 246, 246,
+	247, 248, 249, 250, 251, 252, 253, 253, 254, 255,
+	0, 1, 2, 3, 4, 4, 5, 6, 7, 8,
+	9, 10, 11, 11, 12, 13, 14, 15, 16, 17,
+	18, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+	26, 27, 28, 29, 30, 31, 32, 33, 33, 34,
+	35, 36, 37, 38, 39, 40, 40, 41, 42, 43,
+	44, 45, 46, 47, 47, 48, 49, 50, 51, 52,
+	53, 54, 54, 55, 56, 57, 58, 59, 60, 61,
+	61, 62, 63, 64, 65, 66, 67, 68, 68, 69,
+	70, 71, 72, 73, 74, 75, 76, 76, 77, 78,
+	79, 80, 81, 82, 83, 83, 84, 85, 86, 87,
+	88, 89, 90, 90, 91, 92, 93, 94, 95
+};
+
+int testColorSpaceConversion(const void *pRGBA, int width, int height, void *pY, void *pU, void *pV)
+{
+	int i, j;	
+	int widthStep;
+	unsigned char *movRGBA;
+	unsigned char R, G, B;	
+	unsigned char *cpY, *cpU, *cpV;
+	unsigned char Y;
+
+	cpY = (unsigned char*)pY;			
+
+	widthStep = ((width*PIXELSIZE4 + 3)/PIXELSIZE4 )*PIXELSIZE4;
+		
+	for(j = 0; j< height; j++){		
+		movRGBA = (unsigned char*)pRGBA + j * widthStep;
+
+		for(i = 0; i< width; i++){
+			R = *movRGBA; G = *(movRGBA + 1); B = *(movRGBA + 2);	
+
+			*cpY = (R*38 + G*75 + B*15) >> 7;
+			movRGBA += PIXELSIZE4; 
+			cpY++;			
+
+		}/*for i */		
+	}/*for j*/
+
+	
+	cpU = (unsigned char*)pU;	
+	cpV = (unsigned char*)pV;
+
+	for(j = 0; j< height; j+= 2){		
+		movRGBA = (unsigned char*)pRGBA + j * widthStep;
+		cpY = (unsigned char*)pY + j * width ;	
+		for(i = 0; i< width; i+= 2){
+			R = *movRGBA; G = *(movRGBA + 1); B = *(movRGBA + 2);							
+			Y = *cpY;
+			*cpU = BY2U(B, Y);
+			*cpV = RY2V(R, Y);	
+
+
+			movRGBA += TWO_PIXELSIZE4;
+			cpV++; 			
+			cpU++;			
+			cpY+= TWO_BYTE;
+		}/*for i */		
+	}/*for j*/
+
+	return 0;
+	return 0;
+}
+
+using namespace std;
 int main(int argc, _TCHAR* argv[])
 {
+	av_register_all();
+	avcodec_register_all();
+	
+
+/*
+	FILE *frgb = fopen("d:\\temp\\test.bin","rb");
+	fseek(frgb,0,SEEK_END);
+	int fsize = ftell(frgb);
+	fseek(frgb,0,SEEK_SET);
+	unsigned char *srcBuf = (unsigned char*)malloc(fsize);
+	fread(srcBuf,1,fsize,frgb);
+	fclose(frgb);
+
+	int dstBufSize = 1024*1024*1;
+	unsigned char *dstBuf = (unsigned char*)malloc(dstBufSize);
+
+	int ret = ffmpeg_jpeg_encode(srcBuf,dstBuf,dstBufSize,PIX_FMT_RGB565LE,1280,720,1);
+	FILE *fjpg = fopen("d:\\temp\\test.jpg","wb");
+	fwrite(dstBuf,1,dstBufSize,fjpg);
+	fclose(fjpg);
+	return ret;
+
+	return playVideoFile("d:\\av\\StarTrekTrailer_720p_H.264_AAC_Stereo.mkv");
 	//return myffmpeg_main();
 	//FILE *f = fopen("d:\\av\\jpegcd_firstFrame.jpg","rb");
 	FILE *f = fopen("d:\\temp\\frame_jpegcd_0831.jpg","rb");
@@ -545,42 +891,58 @@ int main(int argc, _TCHAR* argv[])
 	fread(encData,1,size,f);
 	fclose(f);
 
+*/
 
-	avcodec_register_all();
-	FFMpegCodecDecoder dec("mjpeg");
-	int sizeConsumed = 0;
+	int picW = 800;
+	int picH = 480;
+	const char* picFile = "d:\\av\\800x480.rgba";
+
+	//Prepare RGBA data
+	fstream fs;
+	fs.open(picFile,ios::binary | ios::in);
+	fs.seekg(0,fstream::end);
+	unsigned long fsize = fs.tellg();
+	fs.seekg(0,fstream::beg);
+	char *rgbaBuf = (char*)malloc(fsize);
+	fs.read(rgbaBuf,fsize);
+	fs.close();
+	//
+
+	//ColorSpace Conversion 1
+	AVPicture frame420;
+	avpicture_alloc(&frame420,PIX_FMT_YUV420P,picW,picH);
+	testColorSpaceConversion(rgbaBuf, picW,picH, frame420.data[0],frame420.data[1],frame420.data[2]);
+	//
+
+
+	//ColorSpace Conversion 2
+	AVPicture picRGBA;
+	picRGBA.data[0] = (uint8_t*)rgbaBuf;
+	picRGBA.linesize[0] = picW * 4;
+	FFMpegConverter convRGB2YUV(picW,picH,PIX_FMT_RGBA,picW,picH,PIX_FMT_YUV420P);
+	AVPicture *pFrameYUV420 = convRGB2YUV.convertVideo(&picRGBA);
+	//
+
+	//encode
+	AVFrame frameInput;
+	frameInput.pts = 0;
+	//memcpy(&frameInput,pFrameYUV420,sizeof(AVPicture));
+	memcpy(&frameInput,&frame420,sizeof(AVPicture));
+	FFMpegCodecEncoder enc;
+	enc.InitCodec("mjpeg");
+	enc.SetCodecParams(picW,picH,1,PIX_FMT_YUVJ420P);
+
+	int out_size = -1;
+	for (int i=0;i<10;i++)
+	{
+		testColorSpaceConversion(rgbaBuf, picW,picH, frame420.data[0],frame420.data[1],frame420.data[2]);
+		frameInput.pts++;
+		out_size = enc.Encode(&frameInput);
+	}
 	
-	/*
-	unsigned char* bmpData = dec.decodeAsBMP(encData,size,&sizeConsumed);
-	int rgbDataSize = dec.videoWidth*dec.videoHeight*3;
-	f = fopen("d:\\temp\\test.bmp","wb");
-	fwrite(bmpData,1,rgbDataSize+54,f);
+	FILE *f = fopen("d:\\temp\\out.jpg","wb");
+	fwrite(enc.GetEncodeBuf(),1,out_size,f);
 	fclose(f);
-	*/
-
-	int x = 0;
-	int y = 0;
 	
-	int contextW = 1024;
-	int contextH = 768;
-	PixelFormat contextFMT = PIX_FMT_NONE;
-
-	AVFrame *pContextFrame = avcodec_alloc_frame();
-	avpicture_alloc((AVPicture*)pContextFrame,contextFMT,contextW,contextH);
-
-	AVFrame *pFrame = dec.decode(encData,size,&sizeConsumed);
-	contextFMT = dec.videoPixFormat;
-	FFMpegCanvas canvas(contextW,contextH,contextFMT);
-	canvas.draw(dec.videoPixFormat,(AVPicture*)pFrame,x,y,dec.videoWidth,dec.videoHeight);
-
-	FFMpegConverter converter(contextW,contextH,contextFMT,contextW,contextH,PIX_FMT_YUV420P);
-	AVPicture *pFrameConverted = converter.convertVideo(canvas.getPicture());
-
-
-	SDLPlayer player;
-	player.CreateOverlay(1024,768);
-	player.showPixels(pFrameConverted->data,pFrameConverted->linesize);
-	player.StartEventLoop();
-		
 }
 
