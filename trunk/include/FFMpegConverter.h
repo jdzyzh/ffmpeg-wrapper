@@ -22,7 +22,6 @@ public:
 					int w2,int h2,PixelFormat f2);
 	AVPicture* convertVideo(AVPicture *picSrc);
 
-protected:
 
 	SwsContext		*img_convert_ctx;
 	int				scaleBufSize;
