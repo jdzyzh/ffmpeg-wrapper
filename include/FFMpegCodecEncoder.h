@@ -9,13 +9,18 @@ extern "C"
 
 int ffmpeg_jpeg_encode(unsigned char *srcBuf,unsigned char* dstBuf,int dstBufSize,PixelFormat srcPixFmt,int srcWidth,int srcHeight,int qvalue);
 
-/*
-typedef enum
+typedef struct
 {
-	FFMPEG_PIXFMT_YUV420P,
-	FFMPEG_PIXFMT_RGBA,
-}FFMPEG_PIXFMT;
-*/
+	unsigned short inputWidth;
+	unsigned short inputHeight;
+	unsigned short encodeWidth;
+	unsigned short encodeHeight;
+	unsigned char qmin;
+	unsigned char qmax;
+	unsigned short max_bframes;
+	char inputPixelType[32];
+
+}FFMpegCodecEncoderParam;
 
 class FFMpegCodecEncoder
 {
@@ -24,9 +29,8 @@ public:
 	~FFMpegCodecEncoder();
 
 
-	int InitCodec(const char* codecStr);
-	int SetCodecParams(int w,int h,int qvalue,PixelFormat fmt); //q=1 (best) to 31 (worst)
-	int Encode(AVFrame *pFrame);
+	int InitCodec(const char* codecStr, FFMpegCodecEncoderParam *param);
+	int Encode(void* inputBuf);
 	char* GetEncodeBuf();
 
 
@@ -35,6 +39,10 @@ protected:
     AVCodecContext *c;
 	int encBufSize;
 	char *encBuf;
+
+	FFMpegConverter *picConv;
+	AVPicture *picSrc;
+	AVFrame *frameSrc;
 };
 
 #endif

@@ -1,33 +1,17 @@
 #include "FFMpegCodecEncoder.h"
 
-int FFMpegCodecEncoder::SetCodecParams(int w,int h,int qvalue,PixelFormat fmt)
+
+FFMpegCodecEncoder::FFMpegCodecEncoder()
 {
-	if (c != NULL)
-		avcodec_close(c);
-	
-	c= avcodec_alloc_context();
-	c->qmin = qvalue;
-	c->qmax = qvalue;
-	/* resolution must be a multiple of two */
-	c->width = w;
-	c->height = h;
-    
-	c->time_base.den = 25;
-	c->time_base.num = 1;
-	c->max_b_frames=0;
-	c->pix_fmt = fmt;
-
-    /* open it */
-    if (avcodec_open(c, codec) < 0) 
-	{
-        fprintf(stderr, "could not open codec\n");
-        return -2;
-    }
-
-	return 0;
+	c = NULL;
+	codec = NULL;
+	picConv = NULL;
+	encBufSize = 1024*1024;
+	encBuf = (char*)malloc(encBufSize);
+	avcodec_register_all();
 }
 
-int FFMpegCodecEncoder::InitCodec(const char *codecStr)
+int FFMpegCodecEncoder::InitCodec(const char *codecStr,FFMpegCodecEncoderParam *param)
 {
 	codec = avcodec_find_encoder_by_name(codecStr);
     if (!codec) 
@@ -36,16 +20,62 @@ int FFMpegCodecEncoder::InitCodec(const char *codecStr)
         return -1;
     }
 
+	c = avcodec_alloc_context();
+	c->qmin = param->qmin;
+	c->qmax = param->qmax;
+    
+	/* resolution must be a multiple of two */
+	c->width = param->encodeWidth;
+    c->height = param->encodeHeight;
+
+	c->max_b_frames = param->max_bframes;
+	c->pix_fmt = codec->pix_fmts[0];
+	c->time_base.den = 24;
+	c->time_base.num = 1;
+
+	if (codec->id == CODEC_ID_H264)
+	{
+		c->gop_size = 200;
+		c->bit_rate = 1024*1024*5;
+		c->max_qdiff = 4;
+		c->me_range = 16;
+		c->qcompress = 0.6;
+		c->keyint_min = 10;
+		c->trellis = 0;
+		c->level = 13;
+		c->me_threshold = 7;
+		c->thread_count = 2;
+		c->qblur = 0.5;
+		c->profile = FF_PROFILE_H264_BASELINE;
+	}
+    /* open it */
+    if (avcodec_open(c, codec) < 0) {
+        fprintf(stderr, "could not open codec\n");
+        return -2;
+    }
+
+	//setup conversion context
+	if (0 == strcmp("rgb888",param->inputPixelType))
+	{
+		picConv = new FFMpegConverter(
+			param->inputWidth,param->inputHeight,PIX_FMT_RGB24,
+			c->width,c->height,c->pix_fmt);
+	}
+	else if (0 == strcmp("bgr888",param->inputPixelType))
+	{
+		picConv = new FFMpegConverter(
+			param->inputWidth,param->inputHeight,PIX_FMT_BGR24,
+			c->width,c->height,c->pix_fmt);
+	}
+
+	//setup input buffers
+	picSrc = (AVPicture*)malloc(sizeof(AVPicture));
+	frameSrc = avcodec_alloc_frame();
+	frameSrc->pts = 0;
 	return 0;
 }
 
-FFMpegCodecEncoder::FFMpegCodecEncoder()
-{
-	c = NULL;
-	codec = NULL;
-	encBufSize = 1024*1024;
-	encBuf = (char*)malloc(encBufSize);
-}
+
 
 FFMpegCodecEncoder::~FFMpegCodecEncoder()
 {
@@ -54,9 +84,26 @@ FFMpegCodecEncoder::~FFMpegCodecEncoder()
 	free(encBuf);
 }
 
-int FFMpegCodecEncoder::Encode(AVFrame *pFrame)
+int FFMpegCodecEncoder::Encode(void* inputBuf)
 {
-	int out_size = avcodec_encode_video(c, (uint8_t*)encBuf, encBufSize, pFrame);
+	avpicture_fill(picSrc,(uint8_t*)inputBuf,picConv->f1,picConv->w1,picConv->h1);
+	AVPicture *picDst = picConv->convertVideo(picSrc);
+
+	for (int i=0;i<3;i++)
+	{
+		frameSrc->data[i] = picDst->data[i];
+		frameSrc->linesize[i] = picDst->linesize[i];
+	}
+
+	printf("encode begin! pts=%d\n",frameSrc->pts);
+	int out_size = avcodec_encode_video(c, (uint8_t*)encBuf, encBufSize, frameSrc);
+	printf("encode finish: out_size=%d\n",out_size);
+	frameSrc->pts++;
+
+	static FILE *fout = fopen("codecEncoder_output.raw","wb");
+	fwrite(encBuf,1,out_size,fout);
+	fflush(fout);
+
 	return out_size;
 }
 
@@ -149,45 +196,3 @@ int ffmpeg_jpeg_encode(unsigned char *srcBuf,unsigned char* dstBuf,int dstBufSiz
 	return out_size;
 }
 
-//wait to be implemented
-/*
-FFMpegCodecEncoder::FFMpegCodecEncoder(char *_codecName)
-{
-	picture = avcodec_alloc_frame();
-	ctx = NULL;
-	converter = NULL;
-	int ret = InitCodec(_codecName);
-}
-
-FFMpegCodecEncoder::~FFMpegCodecEncoder()
-{
-	avcodec_close(ctx);
-	av_free(ctx);
-	//av_free(picture);
-
-	if (converter)
-		delete converter;
-
-}
-
-int FFMpegCodecEncoder::InitCodec(char *_codecName)
-{
-	avcodec_register_all();
-	if (ctx)
-	{
-		avcodec_close(ctx);
-		av_free(ctx);
-	}
-	
-	codec = avcodec_find_decoder_by_name(_codecName);
-	ctx = avcodec_alloc_context();
-    
-	int ret = avcodec_open(ctx, codec);
-	strcpy(m_codecName,codec->name);
-	return ret;
-}
-unsigned char* FFMpegCodecEncoder::encode(AVPicture *pPic)
-{
-	return NULL;
-}
-*/

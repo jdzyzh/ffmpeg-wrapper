@@ -19,7 +19,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(ProjectDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="2"
 			CharacterSet="1"
 			>
 			<Tool
@@ -60,13 +60,13 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				LinkLibraryDependencies="false"
-				AdditionalDependencies="avcodec-52.lib avutil-50.lib avformat-52.lib swscale-0.lib sdl.lib"
-				AdditionalLibraryDirectories="ffmpeg_build\win32\bin;&quot;sdl_build\win32\SDL-1.2.14\lib&quot;"
+				Name="VCLinkerTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -76,6 +76,12 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -251,6 +257,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\FFMpegCWrapper.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\FFMpegDecoder.h"
 				>
 			</File>
@@ -272,6 +282,30 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+		</Filter>
+		<Filter
+			Name="FFMpeg_build"
+			>
+			<File
+				RelativePath=".\ffmpeg_build\win32\bin\avcodec-52.lib"
+				>
+			</File>
+			<File
+				RelativePath=".\ffmpeg_build\win32\bin\avdevice-52.lib"
+				>
+			</File>
+			<File
+				RelativePath=".\ffmpeg_build\win32\bin\avformat-52.lib"
+				>
+			</File>
+			<File
+				RelativePath=".\ffmpeg_build\win32\bin\avutil-50.lib"
+				>
+			</File>
+			<File
+				RelativePath=".\ffmpeg_build\win32\bin\swscale-0.lib"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
