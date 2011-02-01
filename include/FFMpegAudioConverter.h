@@ -1,6 +1,12 @@
 #ifndef _H_FFMPEGAUDIOCONVERTER
 #define _H_FFMPEGAUDIOCONVERTER
 
+#ifdef DLL_EXPORT
+#define FFMPEGWRAPPER_API __declspec(dllexport)
+#else
+#define FFMPEGWRAPPER_API __declspec(dllimport)
+#endif
+
 extern "C"
 {
 	#include <libavformat/avformat.h>
@@ -26,7 +32,7 @@ typedef struct
     unsigned long SubChun2Size;     // = NumSamples * NumChannels * BitsPerSample / 8. The size of data
 } WAVHEADER;
 
-class FFMpegAudioConverter
+class FFMPEGWRAPPER_API FFMpegAudioConverter
 {
 public:
 

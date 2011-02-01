@@ -1,6 +1,12 @@
 #ifndef _H_FFMPEG_CODEC_DECODER
 #define _H_FFMPEG_CODEC_DECODER
 
+#ifdef DLL_EXPORT
+#define FFMPEGWRAPPER_API __declspec(dllexport)
+#else
+#define FFMPEGWRAPPER_API __declspec(dllimport)
+#endif
+
 extern "C"
 {
 	#include <libavcodec/avcodec.h>
@@ -9,7 +15,7 @@ extern "C"
 
 unsigned char* makeBMPFromRGB888(unsigned char* rgbData,int rgbDataSize,int w,int h);
 
-class FFMpegCodecDecoder
+class FFMPEGWRAPPER_API FFMpegCodecDecoder
 {
 
 public:

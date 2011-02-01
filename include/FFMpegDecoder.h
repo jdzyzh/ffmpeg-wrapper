@@ -12,7 +12,7 @@ extern "C"
 #include "FFMpegFifo.h"
 #include "FFMpegReSampler.h"
 
-class FFMpegDecoder
+class FFMPEGWRAPPER_API FFMpegDecoder
 {
 public:
 	FFMpegDecoder();

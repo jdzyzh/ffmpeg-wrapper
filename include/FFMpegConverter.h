@@ -1,6 +1,12 @@
 #ifndef _H_FFMPEG_CONVERTER
 #define _H_FFMPEG_CONVERTER
 
+#ifdef DLL_EXPORT
+#define FFMPEGWRAPPER_API __declspec(dllexport)
+#else
+#define FFMPEGWRAPPER_API __declspec(dllimport)
+#endif
+
 extern "C"
 {
 	//#include <libavutil/avconfig.h>
@@ -11,7 +17,7 @@ extern "C"
 
 
 
-class FFMpegConverter
+class FFMPEGWRAPPER_API FFMpegConverter
 {
 public:
 	FFMpegConverter(int w1,int h1,PixelFormat f1,

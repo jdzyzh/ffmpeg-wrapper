@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\include\win32;&quot;D:\work\svn\private\SDLWrapper\sdl_build\win32\SDL-1.2.14\include&quot;;D:\work\svn\private\SDLWrapper\include;..\ffmpeg_build\win32\include;..\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;__STDC_CONSTANT_MACROS;__STDC_LIMIT_MACROS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -203,11 +203,39 @@
 			>
 		</Filter>
 		<File
+			RelativePath="..\ffmpeg_build\win32\lib\avcodec.lib"
+			>
+		</File>
+		<File
+			RelativePath="..\ffmpeg_build\win32\lib\avcore.lib"
+			>
+		</File>
+		<File
+			RelativePath="..\ffmpeg_build\win32\lib\avdevice.lib"
+			>
+		</File>
+		<File
+			RelativePath="..\ffmpeg_build\win32\lib\avfilter.lib"
+			>
+		</File>
+		<File
+			RelativePath="..\ffmpeg_build\win32\lib\avformat.lib"
+			>
+		</File>
+		<File
+			RelativePath="..\ffmpeg_build\win32\lib\avutil.lib"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
 			>
 		</File>
 		<File
 			RelativePath="..\..\..\private\SDLWrapper\Debug\SDLWrapper.lib"
+			>
+		</File>
+		<File
+			RelativePath="..\ffmpeg_build\win32\lib\swscale.lib"
 			>
 		</File>
 	</Files>

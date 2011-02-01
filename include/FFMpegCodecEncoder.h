@@ -1,6 +1,12 @@
 #ifndef _H_FFMPEG_CODEC_ENCODER
 #define _H_FFMPEG_CODEC_ENCODER
 
+#ifdef DLL_EXPORT
+#define FFMPEGWRAPPER_API __declspec(dllexport)
+#else
+#define FFMPEGWRAPPER_API __declspec(dllimport)
+#endif
+
 extern "C"
 {
 	#include <libavcodec/avcodec.h>
@@ -18,11 +24,13 @@ typedef struct
 	unsigned char qmin;
 	unsigned char qmax;
 	unsigned short max_bframes;
+	unsigned short gop_size;
+	unsigned int bitrate;
 	char inputPixelType[32];
 
 }FFMpegCodecEncoderParam;
 
-class FFMpegCodecEncoder
+class FFMPEGWRAPPER_API FFMpegCodecEncoder
 {
 public:
 	FFMpegCodecEncoder();
@@ -43,6 +51,8 @@ protected:
 	FFMpegConverter *picConv;
 	AVPicture *picSrc;
 	AVFrame *frameSrc;
+
+	bool bFirstIFrameFound;
 };
 
 #endif
