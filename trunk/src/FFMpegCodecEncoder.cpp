@@ -8,6 +8,8 @@ FFMpegCodecEncoder::FFMpegCodecEncoder()
 	picConv = NULL;
 	encBufSize = 1024*1024;
 	encBuf = (char*)malloc(encBufSize);
+	bFirstIFrameFound = false;
+
 	avcodec_register_all();
 }
 
@@ -23,20 +25,20 @@ int FFMpegCodecEncoder::InitCodec(const char *codecStr,FFMpegCodecEncoderParam *
 	c = avcodec_alloc_context();
 	c->qmin = param->qmin;
 	c->qmax = param->qmax;
-    
+	c->bit_rate = param->bitrate;
+
 	/* resolution must be a multiple of two */
 	c->width = param->encodeWidth;
     c->height = param->encodeHeight;
 
 	c->max_b_frames = param->max_bframes;
+	c->gop_size = param->gop_size;
 	c->pix_fmt = codec->pix_fmts[0];
 	c->time_base.den = 24;
 	c->time_base.num = 1;
 
 	if (codec->id == CODEC_ID_H264)
 	{
-		c->gop_size = 200;
-		c->bit_rate = 1024*1024*5;
 		c->max_qdiff = 4;
 		c->me_range = 16;
 		c->qcompress = 0.6;
@@ -98,6 +100,8 @@ int FFMpegCodecEncoder::Encode(void* inputBuf)
 	printf("encode begin! pts=%d\n",frameSrc->pts);
 	int out_size = avcodec_encode_video(c, (uint8_t*)encBuf, encBufSize, frameSrc);
 	printf("encode finish: out_size=%d\n",out_size);
+
+
 	frameSrc->pts++;
 
 	static FILE *fout = fopen("codecEncoder_output.raw","wb");
