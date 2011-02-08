@@ -1,13 +1,14 @@
 #ifndef _H_FFMPEG_CODEC_DECODER
 #define _H_FFMPEG_CODEC_DECODER
 
-#include "FFMpegWrapper.h"
 
+#include "FFMpegWrapperAPI.h"
 extern "C"
 {
 	#include <libavcodec/avcodec.h>
 }
 #include <FFMpegConverter.h>
+#include <FPSCounter.h>
 
 unsigned char* makeBMPFromRGB888(unsigned char* rgbData,int rgbDataSize,int w,int h);
 
@@ -32,11 +33,12 @@ public:
 	char m_codecName[64];
 
 
-protected:
+public:
 	AVCodec *codec;
 	AVCodecContext *ctx;
 	AVFrame *picture;
 
 	FFMpegConverter *converter;
+	FPSCounter fpsCounter;
 };
 #endif
