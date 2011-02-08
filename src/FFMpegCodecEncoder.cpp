@@ -69,7 +69,12 @@ int FFMpegCodecEncoder::InitCodec(const char *codecStr,FFMpegCodecEncoderParam *
 			param->inputWidth,param->inputHeight,PIX_FMT_BGR24,
 			c->width,c->height,c->pix_fmt);
 	}
-
+	else if (0 == strcmp("yuv420p",param->inputPixelType))
+	{
+		picConv = new FFMpegConverter(
+			param->inputHeight,param->inputHeight,PIX_FMT_YUV420P,
+			c->width,c->height,c->pix_fmt);
+	}
 	//setup input buffers
 	picSrc = (AVPicture*)malloc(sizeof(AVPicture));
 	frameSrc = avcodec_alloc_frame();

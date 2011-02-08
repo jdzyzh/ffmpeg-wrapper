@@ -19,6 +19,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include <myFFMpeg.h>
 /* needed for usleep() */
 #define _XOPEN_SOURCE 600
 #include <stdint.h>

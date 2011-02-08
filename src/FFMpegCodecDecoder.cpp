@@ -77,11 +77,15 @@ AVFrame* FFMpegCodecDecoder::decode(unsigned char *encData, int encDataSize, int
 	int len = -1;
 	int got_picture = 0;
 
-	*encDataConsumed = 0;
+	if (encDataConsumed)
+		*encDataConsumed = 0;
+
     while (encDataSize > 0) 
 	{
+		fpsCounter.BeforeProcess();
         len = avcodec_decode_video(ctx, picture, &got_picture,
                                    inbuf_ptr, encDataSize);
+		fpsCounter.AfterProcess();
 
 		videoWidth = ctx->width;
 		videoHeight = ctx->height;
@@ -94,11 +98,13 @@ AVFrame* FFMpegCodecDecoder::decode(unsigned char *encData, int encDataSize, int
         }
 
 		encDataSize -= len;
-		*encDataConsumed += len;
+		if (encDataConsumed)
+			*encDataConsumed += len;
         inbuf_ptr += len;
 		
         if (got_picture) 
 		{
+			fpsCounter.FrameFinished();
             return picture;
         }   
     }
