@@ -1,11 +1,7 @@
 #ifndef _H_FFMPEG_CONVERTER
 #define _H_FFMPEG_CONVERTER
 
-#ifdef DLL_EXPORT
-#define FFMPEGWRAPPER_API __declspec(dllexport)
-#else
-#define FFMPEGWRAPPER_API __declspec(dllimport)
-#endif
+#include "FFMpegWrapper.h"
 
 extern "C"
 {

@@ -48,7 +48,7 @@ int FFMpegCodecEncoder::InitCodec(const char *codecStr,FFMpegCodecEncoderParam *
 		c->me_threshold = 7;
 		c->thread_count = 2;
 		c->qblur = 0.5;
-		c->profile = FF_PROFILE_H264_BASELINE;
+		c->profile = 66;	/*FF_PROFILE_H264_BASELINE*/
 	}
     /* open it */
     if (avcodec_open(c, codec) < 0) {

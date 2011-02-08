@@ -1,11 +1,7 @@
 #ifndef _H_FFMPEG_CODEC_DECODER
 #define _H_FFMPEG_CODEC_DECODER
 
-#ifdef DLL_EXPORT
-#define FFMPEGWRAPPER_API __declspec(dllexport)
-#else
-#define FFMPEGWRAPPER_API __declspec(dllimport)
-#endif
+#include "FFMpegWrapper.h"
 
 extern "C"
 {
