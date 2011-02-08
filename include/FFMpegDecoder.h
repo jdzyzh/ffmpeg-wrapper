@@ -13,6 +13,7 @@ extern "C"
 #include "SimpleBuffer.h"
 #include "FFMpegFifo.h"
 #include "FFMpegReSampler.h"
+#include "FPSCounter.h"
 
 class FFMPEGWRAPPER_API FFMpegDecoder
 {
@@ -73,6 +74,8 @@ public:
 	double				audioPtsSec;
 	
 	bool				opened;
+
+	FPSCounter			fpsCounter;
 
 public:
 	static const int ERR_OPENFILE		= -1;
