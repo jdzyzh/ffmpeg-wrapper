@@ -199,8 +199,9 @@ AVFrame* FFMpegDecoder::decodeVideo(AVPacket *encodedPacket)
 	int bytesDecoded = -1;
 	
 	my_video_pkt_pts = encodedPacket->pts;
+	fpsCounter.BeforeProcess();
 	bytesDecoded = avcodec_decode_video2(pVideoCodecCtx,pDecodedFrame,&gotPic,encodedPacket);
-
+	fpsCounter.AfterProcess();
 
 
 	if (encodedPacket->dts == AV_NOPTS_VALUE && pDecodedFrame->opaque && *(uint64_t*)pDecodedFrame->opaque != AV_NOPTS_VALUE)
@@ -220,6 +221,7 @@ AVFrame* FFMpegDecoder::decodeVideo(AVPacket *encodedPacket)
 	}	
 	if (gotPic)
 	{
+		fpsCounter.FrameFinished();
 		syncVideoPTS();
 		return pDecodedFrame;
 	}	
