@@ -1,7 +1,10 @@
 #include "FFMpegConverter.h"
 #include <algorithm>
-
-
+extern "C"
+{
+#include <yuv2rgb_arm.h>
+#include <yuv2rgb.h>
+}
 
 FFMpegConverter::FFMpegConverter(
 								 int _w1,int _h1,PixelFormat _f1,
@@ -31,6 +34,7 @@ FFMpegConverter::FFMpegConverter(
 	avpicture_fill(pPicScaled,scaleBuf,_f2,_w2,_h2);
 
 	initContext(_w1,_h1,_f1,_w2,_h2,_f2);
+	fpsCounter.SetName("colorspace conversion");
 }
 
 int FFMpegConverter::initContext(int _w1,int _h1,PixelFormat _f1,
@@ -45,7 +49,7 @@ int FFMpegConverter::initContext(int _w1,int _h1,PixelFormat _f1,
 
 	img_convert_ctx = sws_getCachedContext(img_convert_ctx,
 		w1, h1, f1,
-		w2, h2, f2,SWS_BICUBIC, NULL, NULL, NULL);
+		w2, h2, f2,SWS_POINT, NULL, NULL, NULL);
 
 	if (!img_convert_ctx)
 		return -1;
@@ -76,11 +80,17 @@ AVPicture *FFMpegConverter::convertVideo(AVPicture *pic)
 		fprintf(stderr,"img_convert_ctx NULL!\n");
 		return NULL;
 	}
-    int ret = sws_scale(img_convert_ctx,
-		pic->data, pic->linesize,
-		0, h1,
-		pPicScaled->data, pPicScaled->linesize);
-
+	
+	fpsCounter.BeforeProcess();
+	
+	int ret = sws_scale(img_convert_ctx,
+	pic->data, pic->linesize,
+	0, h1,
+	pPicScaled->data, pPicScaled->linesize);
+			
+	fpsCounter.AfterProcess();
+	fpsCounter.FrameFinished();
+	
 	if (ret > 0)
 		return pPicScaled;
 	else

@@ -1,7 +1,7 @@
 #ifndef FFMPEG_DECODER_H
 #define FFMPEG_DECODER_H
 
-#include "FFMpegWrapper.h"
+#include "FFMpegWrapperAPI.h"
 
 extern "C"
 {

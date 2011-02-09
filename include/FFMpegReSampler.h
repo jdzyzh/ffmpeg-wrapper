@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FFMpegWrapper.h"
+#include "FFMpegWrapperAPI.h"
 
 extern "C" 
 {

@@ -1,7 +1,7 @@
 #ifndef _H_FFMPEGAUDIOCONVERTER
 #define _H_FFMPEGAUDIOCONVERTER
 
-#include "FFMpegWrapper.h"
+#include "FFMpegWrapperAPI.h"
 
 extern "C"
 {
