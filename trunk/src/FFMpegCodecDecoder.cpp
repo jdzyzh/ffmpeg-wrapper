@@ -36,6 +36,7 @@ FFMpegCodecDecoder::FFMpegCodecDecoder(char *_codecName)
 	ctx = NULL;
 	converter = NULL;
 	int ret = InitCodec(_codecName);
+	fpsCounter.SetName(_codecName);
 }
 
 FFMpegCodecDecoder::~FFMpegCodecDecoder()

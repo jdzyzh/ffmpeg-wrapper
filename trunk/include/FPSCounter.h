@@ -12,11 +12,20 @@ public:
 
 	FPSCounter() 
 	{
+		name = strdup("");
 		SetUpdateInterval(1000);
 		Reset();
 	};
-	~FPSCounter() {};
+	~FPSCounter() 
+	{
+		free(name);
+	};
 
+	void SetName(char* str)
+	{
+		free(name);
+		name = strdup(str);
+	}
 	void SetUpdateInterval(int msec)
 	{
 		msUpdateInterval = msec;
@@ -52,9 +61,12 @@ public:
 	
 	void Report()
 	{
-		printf("FPS:%.2f\n",fps);
+		printf("%s ",name);
+		printf("FPS=%.2f,time per frame=%.0f\n",fps,1000/fps);
 	}
+	
 protected:
 	int64_t t1,t2,msTimeElapsed,msUpdateInterval,frameCount;
+	char* name;
 	float fps;
 };

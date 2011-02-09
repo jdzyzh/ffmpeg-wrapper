@@ -1,7 +1,8 @@
 #ifndef _H_FFMPEG_CONVERTER
 #define _H_FFMPEG_CONVERTER
 
-#include "FFMpegWrapper.h"
+#include "FFMpegWrapperAPI.h"
+#include "FPSCounter.h"
 
 extern "C"
 {
@@ -33,6 +34,8 @@ public:
 	bool m_bAllocBuf;
 	int w1,w2,h1,h2;
 	PixelFormat f1,f2;
+	
+	FPSCounter fpsCounter;
 
 };
 
