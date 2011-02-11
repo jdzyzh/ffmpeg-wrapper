@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\include\win32;&quot;D:\work\svn\private\SDLWrapper\sdl_build\win32\SDL-1.2.14\include&quot;;D:\work\svn\private\SDLWrapper\include;..\ffmpeg_build\win32\include;..\include"
+				AdditionalIncludeDirectories="..\include\win32;&quot;..\..\sdl-wrapper\sdl_build\win32\SDL-1.2.14\include&quot;;&quot;..\..\sdl-wrapper\include&quot;;..\ffmpeg_build\win32\include;..\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;__STDC_CONSTANT_MACROS;__STDC_LIMIT_MACROS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -231,7 +231,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\private\SDLWrapper\Debug\SDLWrapper.lib"
+			RelativePath="..\..\sdl-wrapper\Debug\SDLWrapper.lib"
 			>
 		</File>
 		<File

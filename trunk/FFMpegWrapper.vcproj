@@ -89,6 +89,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
@@ -176,14 +177,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\src\EncodeProfile.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegAudioConverter.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\FFMpegCanvas.cpp"
 				>
 			</File>
@@ -197,30 +190,6 @@
 			</File>
 			<File
 				RelativePath=".\src\FFMpegConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegDecoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegEncoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegFifo.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegReSampler.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegVideoDecoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\myFFMpeg.cpp"
 				>
 			</File>
 		</Filter>
@@ -267,6 +236,18 @@
 			</File>
 			<File
 				RelativePath=".\FFMpegWrapper_dynamic.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\FFMpegWrapperAPI.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\FPSCounter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\myFFMpeg.h"
 				>
 			</File>
 			<File

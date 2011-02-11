@@ -34,6 +34,7 @@ int FFMpegCodecEncoder::InitCodec(const char *codecStr,FFMpegCodecEncoderParam *
 	c->max_b_frames = param->max_bframes;
 	c->gop_size = param->gop_size;
 	c->pix_fmt = codec->pix_fmts[0];
+	c->color_range = AVCOL_RANGE_JPEG;
 	c->time_base.den = 24;
 	c->time_base.num = 1;
 
