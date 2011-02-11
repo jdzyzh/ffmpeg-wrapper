@@ -2,6 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFMpegWrapperTest", "FFMpegWrapperTest\FFMpegWrapperTest.vcproj", "{1B354F22-2DF2-4862-B5B9-8E7CF27ABD5D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{38B2B370-B30A-4E12-BD69-8E60A348DBE3} = {38B2B370-B30A-4E12-BD69-8E60A348DBE3}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFMpegWrapperAdaptor", "FFMpegWrapperAdaptor\FFMpegWrapperAdaptor.vcproj", "{423A8F75-C961-46C3-8A9E-CB58B06BF930}"
 EndProject

@@ -2,10 +2,12 @@
 #pragma once
 
 #ifdef WIN32
-	#ifdef DLL_EXPORT
+	#if defined (DLL_EXPORT)
 		#define FFMPEGWRAPPER_API __declspec(dllexport)
-	#else
+	#elif defined (DLL_IMPORT)
 		#define FFMPEGWRAPPER_API __declspec(dllimport)
+	#else
+		#define FFMPEGWRAPPER_API
 	#endif
 #else
 	#define FFMPEGWRAPPER_API

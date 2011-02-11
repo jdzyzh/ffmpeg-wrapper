@@ -9,8 +9,6 @@ extern "C"
 }
 #include <FFMpegConverter.h>
 
-int ffmpeg_jpeg_encode(unsigned char *srcBuf,unsigned char* dstBuf,int dstBufSize,PixelFormat srcPixFmt,int srcWidth,int srcHeight,int qvalue);
-
 typedef struct
 {
 	unsigned short inputWidth;

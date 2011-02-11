@@ -17,6 +17,7 @@
 #include <FFMpegAudioConverter.h>
 #include <fstream>
 #include <FFMpegCWrapper.h>
+#include <myFFMpeg.h>
 #undef main
 
 
@@ -473,115 +474,141 @@ using namespace std;
 #define LOGE printf
 
 
-int testDecode()
+int testFFMpegCodecDecoder(char *filename)
 {
+	FFMpegCodecDecoder h264Decoder("h264");
+	FILE *f = fopen(filename,"rb");
+	char *buf = (char*)malloc(65536);
+	SDLPlayer *sdl = NULL;
 
-	
-	//Setup JPEG codec
-	AVCodec *codec = avcodec_find_decoder_by_name("mjpeg");
-	AVCodecContext *ctx = avcodec_alloc_context();
-	int ret = avcodec_open(ctx, codec);
-	if (codec->capabilities & CODEC_CAP_TRUNCATED)
-		ctx->flags |= CODEC_FLAG_TRUNCATED;
+	sdl = new SDLPlayer(640,480,32);
+	sdl->CreateOverlay(/*pInfo->videoWidth*/1312,544);
 
-	int got_pic = -1;
-	AVFrame picDecoded;
-	AVPacket pkt;
-	
-	//
-	const char* jpgFiles[1] = 
+	while (true)
 	{
-		//"d:\\av\\720.jpg",
-		"d:\\av\\desktop_800x600.jpg",
-		//"d:\\av\\love001.jpg"
-	};
-	
-	for (int j=0;j<1;j++)
-	{
-		//Prepare Jpg Buffer
-		FILE *jpgFile = fopen(jpgFiles[j],"rb");
-		fseek(jpgFile,0,SEEK_END);
-		long jpgFileSize = ftell(jpgFile);
-		fseek(jpgFile,0,SEEK_SET);
-		void *jpgBuf = malloc(jpgFileSize);
-		fread(jpgBuf,1,jpgFileSize,jpgFile);
-		fclose(jpgFile);
-		//
-
-		//decode: jpgBuf ==> picDecoded->data[]
-		pkt.data = (uint8_t*)jpgBuf;
-		pkt.size = jpgFileSize;
-		avcodec_decode_video2(ctx,&picDecoded,&got_pic,&pkt);
-		
-		
-		//
-
-		//output YUV image, 
-		PixelFormat yuvFormat = ctx->pix_fmt;
-		const char* yuvFormatName = avcodec_get_pix_fmt_name(yuvFormat);
-		char yuvFilename[256];
-		sprintf(yuvFilename,"d:\\temp\\ffmpeg_decode_result_%d_%dx%d.%s",j,picDecoded.linesize[0],ctx->height,yuvFormatName);
-		FILE *yuvFile = fopen(yuvFilename,"wb");
-
-		
-		for (int i=0;i<3;i++)
-		{
-			int ret = fwrite(picDecoded.data[i],1,picDecoded.linesize[i] * ctx->height,yuvFile);
-			printf("writing plane [%d]: %d bytes\n",i,ret/*picDecoded.linesize[i] * ctx->height*/);
-		}
+		int ret = fread(buf,1,65536,f);
+		//printf("read: %d bytes\n",ret);
 		
 		/*
-		AVCodec *encCodec = avcodec_find_encoder_by_name("rawvideo");
-		AVCodecContext *encCtx = avcodec_alloc_context();
-		encCtx->pix_fmt = ctx->pix_fmt;
-		ret = avcodec_open(encCtx,encCodec);
-		int encBufSize = ctx->width * ctx->height * 4;
-		char *encBuf = (char*)malloc(encBufSize);
-		encCtx->width = ctx->width;
-		encCtx->height = ctx->height;
-		int encRet = avcodec_encode_video(encCtx,(uint8_t*)encBuf,encBufSize,&picDecoded);
-		fwrite(encBuf,1,encRet,yuvFile);
-		*/
+		while (ret > 0)
+		{
+			int dataConsumed = 0;
+			AVFrame *pFrame = h264Decoder.decode((unsigned char*)buf,ret,&dataConsumed);
+			ret -= dataConsumed;
+			buf += dataConsumed;
 
-		fclose(yuvFile);
-		//
+			if (pFrame)
+				sdl->showPixels(pFrame->data,pFrame->linesize);
+		}
+		*/
 	}
 
 	return 0;
 }
 
-int main(int argc, _TCHAR* argv[])
+int testFFMpegDecoder(char* filename)
 {
-	av_register_all();
-	avcodec_register_all();
-	
-	//return myffmpeg_main();
-	//return testDecode();
-
 	FFMpegDecoder dec;
-	AVInfo *pInfo = dec.openFile("d:\\av\\StarTrekTrailer_720p_H.264_AAC_Stereo.mkv");
-	SDLPlayer *sdl = NULL;
+	AVInfo *info = dec.openFile(filename);
+	SDLPlayer *sdl = new SDLPlayer(info->videoWidth,info->videoHeight,32);
+	sdl->StartEventLoop();
+	sdl->CreateOverlay(info->videoWidth+32,info->videoHeight);
+	
 	while (true)
 	{
-		AVPacket *pPacket = dec.readPacket();
-		if (pPacket == NULL)
+		AVPacket *pkt = dec.readPacket();
+		if (pkt == NULL)
 			break;
-		if (pPacket->stream_index != pInfo->videoStreamIdx)
+		if (pkt->stream_index != info->videoStreamIdx)
+			continue;
+
+		printf("got video packet: size=%d\n",pkt->size);
+		AVFrame *pFrame = dec.decodeVideo();
+		if (pFrame)
+		{
+			printf("frame type=%d\n",pFrame->pict_type);
+			sdl->showPixels(pFrame->data,pFrame->linesize);
+		}
+		else
+			printf("no frame decoded\n");
+	}
+
+	return 0;
+}
+
+
+int testH264Encoder(char* filename,char* h264Filename)
+{
+	
+	FFMpegDecoder dec;
+	AVInfo *info = dec.openFile(filename);
+	SDLPlayer *sdl = new SDLPlayer(640,480,32);
+	sdl->CreateOverlay(info->videoWidth+32,info->videoHeight);
+
+	FFMpegCodecEncoderParam param;
+	param.encodeWidth = param.inputWidth = info->videoWidth;
+	param.encodeHeight = param.inputHeight = info->videoHeight;
+	param.bitrate = 2 * 1024 * 1024;
+	param.gop_size = 250;
+	strcpy(param.inputPixelType,"yuv420p");
+	param.max_bframes = 2;
+	param.qmax = 51;
+	param.qmin = 10;
+
+	FFMpegCodecEncoder *h264Encoder = new FFMpegCodecEncoder();
+	h264Encoder->InitCodec("libx264",&param);
+
+	int continuousPixBufSize = avpicture_get_size(info->videoPixFmt,info->videoWidth,info->videoHeight);
+	unsigned char *continuousPixBuf = (unsigned char*)malloc(continuousPixBufSize);
+
+	FILE *fout = fopen(h264Filename,"wb");
+
+	while (true)
+	{
+		AVPacket *pkt = dec.readPacket();
+		if (pkt == NULL)
+			break;
+		if (pkt->stream_index != info->videoStreamIdx)
 			continue;
 
 		AVFrame *pFrame = dec.decodeVideo();
 		if (pFrame)
 		{
-			printf("frame decoded!\n");
-			if (sdl == NULL)
-			{
-				sdl = new SDLPlayer();
-				sdl->CreateOverlay(/*pInfo->videoWidth*/1312,pInfo->videoHeight);
-			}
 			sdl->showPixels(pFrame->data,pFrame->linesize);
+
+			avpicture_layout((AVPicture*)pFrame,info->videoPixFmt,info->videoWidth,info->videoHeight,continuousPixBuf,continuousPixBufSize);
+			int encodeSize = h264Encoder->Encode(continuousPixBuf);
+			fwrite(h264Encoder->GetEncodeBuf(),1,encodeSize,fout);
+			fflush(fout);
 		}
 	}
+	fclose(fout);
 
+	return 0;
+}
+int main(int argc, char* argv[])
+{
+	//return ffmpeg_main(argc,argv);
+	av_register_all();
+	avcodec_register_all();
+	
+	//return myffmpeg_main();
+	//return testFFMpegCodecDecoder("d:\\temp\\orz.h264");
+	//return testFFMpegDecoder("d:\\temp\\orz.h264");
+	//return testH264Encoder("d:\\av\\StarTrekTrailer_720p_H.264_AAC_Stereo.mkv","d:\\temp\\test.h264");
+
+	 
+	FFMpegCodecEncoder *h264Encoder = new FFMpegCodecEncoder();
+	FFMpegCodecEncoderParam h264Param;
+	int w = 1024;
+	int h = 768;
+
+	h264Param.inputWidth = w;
+	h264Param.inputHeight = h;
+	h264Param.encodeWidth = w;
+	h264Param.encodeHeight = h;
+	//h264Encoder->InitCodec("libx264",&h264Param);
+	h264Encoder->InitCodec("mjpeg",&h264Param);
 
 	
 }

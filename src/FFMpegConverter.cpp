@@ -1,10 +1,5 @@
 #include "FFMpegConverter.h"
 #include <algorithm>
-extern "C"
-{
-#include <yuv2rgb_arm.h>
-#include <yuv2rgb.h>
-}
 
 FFMpegConverter::FFMpegConverter(
 								 int _w1,int _h1,PixelFormat _f1,
