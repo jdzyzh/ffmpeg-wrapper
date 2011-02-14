@@ -1,6 +1,7 @@
-#include "FFMpegCodecDecoder.h"
+#include <FFMpegCodecDecoder.h>
+#include <RealFFMpegCodecDecoder.h>
 
-unsigned char* FFMpegCodecDecoder::genBMPHeader(int w,int h)
+unsigned char* RealFFMpegCodecDecoder::genBMPHeader(int w,int h)
 {
 	unsigned char header[54] = 
 	{
@@ -30,7 +31,7 @@ unsigned char* FFMpegCodecDecoder::genBMPHeader(int w,int h)
 	memcpy(header_ret,header,54);
 	return header_ret;
 }
-FFMpegCodecDecoder::FFMpegCodecDecoder(char *_codecName)
+RealFFMpegCodecDecoder::RealFFMpegCodecDecoder(char *_codecName)
 {
 	picture = avcodec_alloc_frame();
 	ctx = NULL;
@@ -39,7 +40,7 @@ FFMpegCodecDecoder::FFMpegCodecDecoder(char *_codecName)
 	fpsCounter.SetName(_codecName);
 }
 
-FFMpegCodecDecoder::~FFMpegCodecDecoder()
+RealFFMpegCodecDecoder::~RealFFMpegCodecDecoder()
 {
 	avcodec_close(ctx);
 	av_free(ctx);
@@ -50,7 +51,7 @@ FFMpegCodecDecoder::~FFMpegCodecDecoder()
 
 }
 
-int FFMpegCodecDecoder::InitCodec(char *_codecName)
+int RealFFMpegCodecDecoder::InitCodec(char *_codecName)
 {
 	avcodec_register_all();
 	if (ctx)
@@ -71,7 +72,7 @@ int FFMpegCodecDecoder::InitCodec(char *_codecName)
 	strcpy(m_codecName,codec->name);
 	return ret;
 }
-AVFrame* FFMpegCodecDecoder::decode(unsigned char *encData, int encDataSize, int *encDataConsumed)
+AVFrame* RealFFMpegCodecDecoder::decode(unsigned char *encData, int encDataSize, int *encDataConsumed)
 {
 
 	unsigned char* inbuf_ptr = encData;
@@ -112,7 +113,7 @@ AVFrame* FFMpegCodecDecoder::decode(unsigned char *encData, int encDataSize, int
 	return NULL;
 }
 
-unsigned char* FFMpegCodecDecoder::decodeAsBGR888(unsigned char *encData, int encDataSize, int *encDataConsumed)
+unsigned char* RealFFMpegCodecDecoder::decodeAsBGR888(unsigned char *encData, int encDataSize, int *encDataConsumed)
 {
 	AVFrame *pFrame = decode(encData,encDataSize,encDataConsumed);
 	if (pFrame == NULL)
@@ -120,7 +121,7 @@ unsigned char* FFMpegCodecDecoder::decodeAsBGR888(unsigned char *encData, int en
 
 
 	if (converter == NULL)
-		converter = new FFMpegConverter(videoWidth,videoHeight,videoPixFormat,videoWidth,videoHeight,PIX_FMT_BGR24);
+		converter = new RealFFMpegBitmapConverter(videoWidth,videoHeight,videoPixFormat,videoWidth,videoHeight,PIX_FMT_BGR24);
 	else
 		converter->initContext(videoWidth,videoHeight,videoPixFormat,videoWidth,videoHeight,PIX_FMT_BGR24);
 
@@ -132,7 +133,7 @@ unsigned char* FFMpegCodecDecoder::decodeAsBGR888(unsigned char *encData, int en
 	return rgbData;
 }
 
-unsigned char* FFMpegCodecDecoder::decodeAsBMP(unsigned char *encData, int encDataSize, int *encDataConsumed)
+unsigned char* RealFFMpegCodecDecoder::decodeAsBMP(unsigned char *encData, int encDataSize, int *encDataConsumed)
 {
 	unsigned char* rgbData = this->decodeAsBGR888(encData,encDataSize,encDataConsumed);
 	if (rgbData == NULL)
@@ -215,4 +216,43 @@ unsigned char* makeBMPFromRGB888(unsigned char* rgbData,int rgbDataSize,int w,in
 	}
 	//memcpy(bmpData+54,rgbData,rgbDataSize);
 	return bmpData;
+}
+
+FFMpegCodecDecoder::FFMpegCodecDecoder(char *_codecName)
+{
+	_delegate = new RealFFMpegCodecDecoder(_codecName);
+}
+
+FFMpegCodecDecoder::~FFMpegCodecDecoder()
+{
+	delete ((RealFFMpegCodecDecoder*) _delegate);
+}
+
+int FFMpegCodecDecoder::InitCodec(char *_codecName)
+{
+	return ((RealFFMpegCodecDecoder*) _delegate)->InitCodec(_codecName);
+}
+
+FFMpegFrame FFMpegCodecDecoder::decode(unsigned char *encData, int encDataSize, int *encDataConsumed)
+{
+	AVFrame *pFrame = ((RealFFMpegCodecDecoder*) _delegate)->decode(encData,encDataSize,encDataConsumed);
+	FFMpegFrame frame;
+	for (int i=0;i<4;i++)
+	{
+		frame.data[i] = (char*)pFrame->data[i];
+		frame.linesize[i] = pFrame->linesize[i];
+	}
+	frame.frameType = pFrame->type;
+
+	return frame;
+}
+
+unsigned char* FFMpegCodecDecoder::decodeAsBGR888(unsigned char *encData, int encDataSize, int *encDataConsumed)
+{
+	return ((RealFFMpegCodecDecoder*) _delegate)->decodeAsBGR888(encData,encDataSize,encDataConsumed);
+}
+
+unsigned char* FFMpegCodecDecoder::decodeAsBMP(unsigned char *encData, int encDataSize, int *encDataConsumed)
+{
+	return ((RealFFMpegCodecDecoder*) _delegate)->decodeAsBMP(encData,encDataSize,encDataConsumed);
 }

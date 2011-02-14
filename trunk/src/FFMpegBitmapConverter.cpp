@@ -1,7 +1,7 @@
-#include "FFMpegConverter.h"
-#include <algorithm>
+#include <RealFFMpegBitmapConverter.h>
+#include <FFMpegBitmapConverter.h>
 
-FFMpegConverter::FFMpegConverter(
+RealFFMpegBitmapConverter::RealFFMpegBitmapConverter(
 								 int _w1,int _h1,PixelFormat _f1,
 								 int _w2,int _h2,PixelFormat _f2,unsigned char* dstBuf,int dstBufSize)
 {
@@ -32,7 +32,7 @@ FFMpegConverter::FFMpegConverter(
 	fpsCounter.SetName("colorspace conversion");
 }
 
-int FFMpegConverter::initContext(int _w1,int _h1,PixelFormat _f1,
+int RealFFMpegBitmapConverter::initContext(int _w1,int _h1,PixelFormat _f1,
 								 int _w2,int _h2,PixelFormat _f2)
 {
 	w1 = _w1;
@@ -58,7 +58,7 @@ int FFMpegConverter::initContext(int _w1,int _h1,PixelFormat _f1,
 
 	return 0;
 }
-FFMpegConverter::~FFMpegConverter(void)
+RealFFMpegBitmapConverter::~RealFFMpegBitmapConverter(void)
 {
 	if (m_bAllocBuf)
 		free(scaleBuf);
@@ -68,7 +68,7 @@ FFMpegConverter::~FFMpegConverter(void)
 }
 
 
-AVPicture *FFMpegConverter::convertVideo(AVPicture *pic)
+AVPicture *RealFFMpegBitmapConverter::convertVideo(AVPicture *pic)
 {
 	if (img_convert_ctx == NULL)
 	{
@@ -92,3 +92,30 @@ AVPicture *FFMpegConverter::convertVideo(AVPicture *pic)
 		return NULL;
 }
 
+
+FFMpegBitmapConverter::FFMpegBitmapConverter(int w1,int h1,char* fmt1,int w2,int h2, char* fmt2,unsigned char *dstBuf,int dstBufSize)
+{
+	PixelFormat f1 = avcodec_get_pix_fmt(fmt1);
+	PixelFormat f2 = avcodec_get_pix_fmt(fmt2);
+
+	//_delegate = new RealFFMpegBitmapConverter(w1,h1,f1,w2,h2,f2,dstBuf,dstBufSize);
+}
+
+FFMpegBitmapConverter::~FFMpegBitmapConverter()
+{
+	delete ((RealFFMpegBitmapConverter*) _delegate);
+}
+
+FFMpegFrame FFMpegBitmapConverter::convert(FFMpegFrame *pSrcFrame)
+{
+	FFMpegFrame frame;
+	AVPicture picSrc;
+	AVPicture *picDst = ((RealFFMpegBitmapConverter*) _delegate)->convertVideo(&picSrc);
+	for (int i=0;i<4;i++)
+	{
+		frame.data[i] = (char*)picDst->data[i];
+		frame.linesize[i] = picDst->linesize[i];
+	}
+
+	return frame;
+}

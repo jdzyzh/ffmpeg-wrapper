@@ -177,6 +177,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\src\FFMpegBitmapConverter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\FFMpegCanvas.cpp"
 				>
 			</File>
@@ -186,10 +190,6 @@
 			</File>
 			<File
 				RelativePath=".\src\FFMpegCodecEncoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\FFMpegConverter.cpp"
 				>
 			</File>
 		</Filter>
@@ -203,6 +203,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\FFMpegBitmapConverter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\FFMpegCanvas.h"
 				>
 			</File>
@@ -212,10 +216,6 @@
 			</File>
 			<File
 				RelativePath=".\include\FFMpegCodecEncoder.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\FFMpegConverter.h"
 				>
 			</File>
 			<File
@@ -248,6 +248,22 @@
 			</File>
 			<File
 				RelativePath=".\include\myFFMpeg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\RealFFMpegBitmapConverter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\RealFFMpegCanvas.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\RealFFMpegCodecDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\RealFFMpegCodecEncoder.h"
 				>
 			</File>
 			<File
