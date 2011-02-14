@@ -1,7 +1,10 @@
-#include "FFMpegCanvas.h"
-#include "FFMpegConverter.h"
 
-FFMpegCanvas::FFMpegCanvas(int w,int h,PixelFormat fmt)
+#include <RealFFMpegBitmapConverter.h>
+#include <RealFFMpegCanvas.h>
+#include <FFMpegCanvas.h>
+
+
+RealFFMpegCanvas::RealFFMpegCanvas(int w,int h,PixelFormat fmt)
 {
 	m_w = w;
 	m_h = h;
@@ -12,12 +15,12 @@ FFMpegCanvas::FFMpegCanvas(int w,int h,PixelFormat fmt)
 		printf("FFMpegCanvas failed to alloc avpicture! ret=%d,dim=%dx%d\n",ret,m_w,m_h);
 }
 
-FFMpegCanvas::~FFMpegCanvas(void)
+RealFFMpegCanvas::~RealFFMpegCanvas(void)
 {
 	avpicture_free(&m_picture);
 }
 
-int FFMpegCanvas::draw(PixelFormat fmt,AVPicture *pPic, int x, int y, int imageW,int imageH)
+int RealFFMpegCanvas::draw(PixelFormat fmt,AVPicture *pPic, int x, int y, int imageW,int imageH)
 {
 	if (fmt != m_fmt)
 		return -1;
@@ -90,19 +93,19 @@ int FFMpegCanvas::draw(PixelFormat fmt,AVPicture *pPic, int x, int y, int imageW
 
 }
 
-AVPicture* FFMpegCanvas::getPicture()
+AVPicture* RealFFMpegCanvas::getPicture()
 {
 	return &m_picture;	
 }
 
-AVPicture* FFMpegCanvas::copyPicture()
+AVPicture* RealFFMpegCanvas::copyPicture()
 {
 	AVPicture *pic_ret = (AVPicture*)malloc(sizeof(AVPicture));
 	av_picture_copy(pic_ret,&m_picture,m_fmt,m_w,m_h);
 	return pic_ret;
 }
 
-void FFMpegCanvas::clear()
+void RealFFMpegCanvas::clear()
 {
 	unsigned char* rgb = (unsigned char*)malloc(m_w * m_h * 3);
 	for (int h=0;h<m_h;h++)
@@ -118,10 +121,32 @@ void FFMpegCanvas::clear()
 	rgbPic.data[0] = rgb;
 	rgbPic.linesize[0] = m_w * 3;
 	
-	FFMpegConverter conv(m_w, m_h, PIX_FMT_RGB24, m_w, m_h, m_fmt);
+	RealFFMpegBitmapConverter conv(m_w, m_h, PIX_FMT_RGB24, m_w, m_h, m_fmt);
 	
 	
 	AVPicture *picConverted = conv.convertVideo(&rgbPic);
 	draw(m_fmt, picConverted, 0,0, m_w, m_h);
 	free(rgb);	
+}
+
+FFMpegCanvas::FFMpegCanvas(int w, int h, char* fmtName)
+{
+	PixelFormat fmt = avcodec_get_pix_fmt(fmtName);
+	_delegate = new RealFFMpegCanvas(w,h,fmt);
+}
+
+FFMpegCanvas::~FFMpegCanvas()
+{
+	delete ((RealFFMpegCanvas*) _delegate);
+}
+
+int FFMpegCanvas::draw(char *fmtStr, FFMpegFrame *pFrame, int x, int y, int imageW, int imageH)
+{
+	PixelFormat fmt = avcodec_get_pix_fmt(fmtStr);
+	return ((RealFFMpegCanvas*) _delegate)->draw(fmt,(AVPicture*)pFrame,x,y,imageW,imageH);
+}
+
+void FFMpegCanvas::clear()
+{
+	return ((RealFFMpegCanvas*) _delegate)->clear();
 }

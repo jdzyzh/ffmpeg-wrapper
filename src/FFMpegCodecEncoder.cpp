@@ -1,7 +1,8 @@
-#include "FFMpegCodecEncoder.h"
+#include <FFMpegCodecEncoder.h>
+#include <RealFFMpegCodecEncoder.h>
 
 
-FFMpegCodecEncoder::FFMpegCodecEncoder()
+RealFFMpegCodecEncoder::RealFFMpegCodecEncoder()
 {
 	c = NULL;
 	codec = NULL;
@@ -13,7 +14,7 @@ FFMpegCodecEncoder::FFMpegCodecEncoder()
 	avcodec_register_all();
 }
 
-int FFMpegCodecEncoder::InitCodec(const char *codecStr,FFMpegCodecEncoderParam *param)
+int RealFFMpegCodecEncoder::InitCodec(const char *codecStr,FFMpegCodecEncoderParam *param)
 {
 	codec = avcodec_find_encoder_by_name(codecStr);
     if (!codec) 
@@ -60,19 +61,19 @@ int FFMpegCodecEncoder::InitCodec(const char *codecStr,FFMpegCodecEncoderParam *
 	//setup conversion context
 	if (0 == strcmp("rgb888",param->inputPixelType))
 	{
-		picConv = new FFMpegConverter(
+		picConv = new RealFFMpegBitmapConverter(
 			param->inputWidth,param->inputHeight,PIX_FMT_RGB24,
 			c->width,c->height,c->pix_fmt);
 	}
 	else if (0 == strcmp("bgr888",param->inputPixelType))
 	{
-		picConv = new FFMpegConverter(
+		picConv = new RealFFMpegBitmapConverter(
 			param->inputWidth,param->inputHeight,PIX_FMT_BGR24,
 			c->width,c->height,c->pix_fmt);
 	}
 	else if (0 == strcmp("yuv420p",param->inputPixelType))
 	{
-		picConv = new FFMpegConverter(
+		picConv = new RealFFMpegBitmapConverter(
 			param->inputHeight,param->inputHeight,PIX_FMT_YUV420P,
 			c->width,c->height,c->pix_fmt);
 	}
@@ -85,14 +86,14 @@ int FFMpegCodecEncoder::InitCodec(const char *codecStr,FFMpegCodecEncoderParam *
 
 
 
-FFMpegCodecEncoder::~FFMpegCodecEncoder()
+RealFFMpegCodecEncoder::~RealFFMpegCodecEncoder()
 {
 	avcodec_close(c);
     av_free(c);
 	free(encBuf);
 }
 
-int FFMpegCodecEncoder::Encode(void* inputBuf)
+int RealFFMpegCodecEncoder::Encode(void* inputBuf)
 {
 	avpicture_fill(picSrc,(uint8_t*)inputBuf,picConv->f1,picConv->w1,picConv->h1);
 	AVPicture *picDst = picConv->convertVideo(picSrc);
@@ -117,7 +118,7 @@ int FFMpegCodecEncoder::Encode(void* inputBuf)
 	return out_size;
 }
 
-char* FFMpegCodecEncoder::GetEncodeBuf()
+char* RealFFMpegCodecEncoder::GetEncodeBuf()
 {
 	return encBuf;
 }
@@ -206,3 +207,27 @@ int ffmpeg_jpeg_encode(unsigned char *srcBuf,unsigned char* dstBuf,int dstBufSiz
 	return out_size;
 }
 
+FFMpegCodecEncoder::FFMpegCodecEncoder()
+{
+	_delegate = new RealFFMpegCodecEncoder();
+}
+
+FFMpegCodecEncoder::~FFMpegCodecEncoder()
+{
+	delete (RealFFMpegCodecEncoder*) _delegate;
+}
+
+int FFMpegCodecEncoder::Encode(void *inputBuf)
+{
+	return ((RealFFMpegCodecEncoder*) _delegate)->Encode(inputBuf);
+}
+
+char* FFMpegCodecEncoder::GetEncodeBuf()
+{
+	return ((RealFFMpegCodecEncoder*) _delegate)->GetEncodeBuf();
+}
+
+int FFMpegCodecEncoder::InitCodec(const char *codecStr, FFMpegCodecEncoderParam *param)
+{
+	return ((RealFFMpegCodecEncoder*) _delegate)->InitCodec(codecStr,param);
+}

@@ -3,12 +3,6 @@
 
 #include "FFMpegWrapperAPI.h"
 
-extern "C"
-{
-	#include <libavcodec/avcodec.h>
-}
-#include <FFMpegConverter.h>
-
 typedef struct
 {
 	unsigned short inputWidth;
@@ -30,23 +24,11 @@ public:
 	FFMpegCodecEncoder();
 	~FFMpegCodecEncoder();
 
-
 	int InitCodec(const char* codecStr, FFMpegCodecEncoderParam *param);
 	int Encode(void* inputBuf);
 	char* GetEncodeBuf();
 
-
-protected:
-	AVCodec *codec;
-    AVCodecContext *c;
-	int encBufSize;
-	char *encBuf;
-
-	FFMpegConverter *picConv;
-	AVPicture *picSrc;
-	AVFrame *frameSrc;
-
-	bool bFirstIFrameFound;
+	void* _delegate;
 };
 
 #endif
