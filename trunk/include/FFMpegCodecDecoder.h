@@ -21,6 +21,11 @@ public:
 	unsigned char* decodeAsBGR888(unsigned char *encData, int encDataSize, int *encDataConsumed);
 	unsigned char* decodeAsBMP(unsigned char *encData,int encDataSize,int *encDataConsumed);
 
+
+	const char* getFmtStr();
+	int getWidth();
+	int getHeight();
+
 	static unsigned char* genBMPHeader(int w,int h);
 
 public:

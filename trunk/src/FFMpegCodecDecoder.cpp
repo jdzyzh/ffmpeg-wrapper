@@ -256,3 +256,20 @@ unsigned char* FFMpegCodecDecoder::decodeAsBMP(unsigned char *encData, int encDa
 {
 	return ((RealFFMpegCodecDecoder*) _delegate)->decodeAsBMP(encData,encDataSize,encDataConsumed);
 }
+
+
+const char* FFMpegCodecDecoder::getFmtStr()
+{
+	PixelFormat fmt = ((RealFFMpegCodecDecoder*) _delegate)->videoPixFormat;
+	return avcodec_get_pix_fmt_name(fmt);
+}
+
+int FFMpegCodecDecoder::getWidth()
+{
+	return ((RealFFMpegCodecDecoder*) _delegate)->videoWidth;
+}
+
+int FFMpegCodecDecoder::getHeight()
+{
+	return ((RealFFMpegCodecDecoder*) _delegate)->videoHeight;
+}
