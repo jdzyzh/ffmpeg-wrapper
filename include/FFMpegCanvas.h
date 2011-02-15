@@ -11,6 +11,11 @@ public:
 
 	void clear();
 	int draw(char *fmtStr, FFMpegFrame *pFrame, int x, int y, int imageW,int imageH);
+	FFMpegFrame getPicture();
+
+	const char* getFmtStr();
+	int getWidth();
+	int getHeight();
 
 public:
 	void* _delegate;

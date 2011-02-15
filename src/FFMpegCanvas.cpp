@@ -150,3 +150,30 @@ void FFMpegCanvas::clear()
 {
 	return ((RealFFMpegCanvas*) _delegate)->clear();
 }
+
+const char* FFMpegCanvas::getFmtStr()
+{
+	PixelFormat fmt = ((RealFFMpegCanvas*) _delegate)->m_fmt;
+	return avcodec_get_pix_fmt_name(fmt);
+}
+
+FFMpegFrame FFMpegCanvas::getPicture()
+{
+	AVPicture *pPic = ((RealFFMpegCanvas*) _delegate)->getPicture();
+	FFMpegFrame frame;
+	for (int i=0;i<4;i++)
+	{
+		frame.data[i] = (char*)pPic->data[i];
+		frame.linesize[i] = pPic->linesize[i];
+	}
+	return frame;
+}
+int FFMpegCanvas::getWidth()
+{
+	return ((RealFFMpegCanvas*) _delegate)->m_w;
+}
+
+int FFMpegCanvas::getHeight()
+{
+	return ((RealFFMpegCanvas*) _delegate)->m_h;
+}
