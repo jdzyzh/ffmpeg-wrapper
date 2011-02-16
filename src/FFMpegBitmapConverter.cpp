@@ -29,7 +29,6 @@ RealFFMpegBitmapConverter::RealFFMpegBitmapConverter(
 	avpicture_fill(pPicScaled,scaleBuf,_f2,_w2,_h2);
 
 	initContext(_w1,_h1,_f1,_w2,_h2,_f2);
-	fpsCounter.SetName("colorspace conversion");
 }
 
 int RealFFMpegBitmapConverter::initContext(int _w1,int _h1,PixelFormat _f1,
@@ -76,16 +75,11 @@ AVPicture *RealFFMpegBitmapConverter::convertVideo(AVPicture *pic)
 		return NULL;
 	}
 	
-	fpsCounter.BeforeProcess();
-	
 	int ret = sws_scale(img_convert_ctx,
 	pic->data, pic->linesize,
 	0, h1,
 	pPicScaled->data, pPicScaled->linesize);
-			
-	fpsCounter.AfterProcess();
-	fpsCounter.FrameFinished();
-	
+
 	if (ret > 0)
 		return pPicScaled;
 	else
@@ -98,7 +92,7 @@ FFMpegBitmapConverter::FFMpegBitmapConverter(int w1,int h1,char* fmt1,int w2,int
 	PixelFormat f1 = avcodec_get_pix_fmt(fmt1);
 	PixelFormat f2 = avcodec_get_pix_fmt(fmt2);
 
-	//_delegate = new RealFFMpegBitmapConverter(w1,h1,f1,w2,h2,f2,dstBuf,dstBufSize);
+	_delegate = new RealFFMpegBitmapConverter(w1,h1,f1,w2,h2,f2,dstBuf,dstBufSize);
 }
 
 FFMpegBitmapConverter::~FFMpegBitmapConverter()
@@ -109,8 +103,8 @@ FFMpegBitmapConverter::~FFMpegBitmapConverter()
 FFMpegFrame FFMpegBitmapConverter::convert(FFMpegFrame *pSrcFrame)
 {
 	FFMpegFrame frame;
-	AVPicture picSrc;
-	AVPicture *picDst = ((RealFFMpegBitmapConverter*) _delegate)->convertVideo(&picSrc);
+	
+	AVPicture *picDst = ((RealFFMpegBitmapConverter*) _delegate)->convertVideo((AVPicture*)pSrcFrame);
 	for (int i=0;i<4;i++)
 	{
 		frame.data[i] = (char*)picDst->data[i];

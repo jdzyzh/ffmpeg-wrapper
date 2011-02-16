@@ -37,7 +37,7 @@ RealFFMpegCodecDecoder::RealFFMpegCodecDecoder(char *_codecName)
 	ctx = NULL;
 	converter = NULL;
 	int ret = InitCodec(_codecName);
-	fpsCounter.SetName(_codecName);
+	
 }
 
 RealFFMpegCodecDecoder::~RealFFMpegCodecDecoder()
@@ -84,11 +84,8 @@ AVFrame* RealFFMpegCodecDecoder::decode(unsigned char *encData, int encDataSize,
 
     while (encDataSize > 0) 
 	{
-		fpsCounter.BeforeProcess();
         len = avcodec_decode_video(ctx, picture, &got_picture,
                                    inbuf_ptr, encDataSize);
-		fpsCounter.AfterProcess();
-
 		videoWidth = ctx->width;
 		videoHeight = ctx->height;
 		videoPixFormat = ctx->pix_fmt;
@@ -106,7 +103,6 @@ AVFrame* RealFFMpegCodecDecoder::decode(unsigned char *encData, int encDataSize,
 		
         if (got_picture) 
 		{
-			fpsCounter.FrameFinished();
             return picture;
         }   
     }
@@ -237,6 +233,12 @@ FFMpegFrame FFMpegCodecDecoder::decode(unsigned char *encData, int encDataSize, 
 {
 	AVFrame *pFrame = ((RealFFMpegCodecDecoder*) _delegate)->decode(encData,encDataSize,encDataConsumed);
 	FFMpegFrame frame;
+	if (pFrame == NULL)
+	{
+		frame.frameType = 0;	//NULL frame
+		return frame;
+	}
+
 	for (int i=0;i<4;i++)
 	{
 		frame.data[i] = (char*)pFrame->data[i];
