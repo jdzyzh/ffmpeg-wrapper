@@ -59,24 +59,10 @@ int RealFFMpegCodecEncoder::InitCodec(const char *codecStr,FFMpegCodecEncoderPar
     }
 
 	//setup conversion context
-	if (0 == strcmp("rgb888",param->inputPixelType))
-	{
-		picConv = new RealFFMpegBitmapConverter(
-			param->inputWidth,param->inputHeight,PIX_FMT_RGB24,
+	picConv = new RealFFMpegBitmapConverter(
+			param->inputWidth,param->inputHeight,avcodec_get_pix_fmt(param->inputPixelType),
 			c->width,c->height,c->pix_fmt);
-	}
-	else if (0 == strcmp("bgr888",param->inputPixelType))
-	{
-		picConv = new RealFFMpegBitmapConverter(
-			param->inputWidth,param->inputHeight,PIX_FMT_BGR24,
-			c->width,c->height,c->pix_fmt);
-	}
-	else if (0 == strcmp("yuv420p",param->inputPixelType))
-	{
-		picConv = new RealFFMpegBitmapConverter(
-			param->inputHeight,param->inputHeight,PIX_FMT_YUV420P,
-			c->width,c->height,c->pix_fmt);
-	}
+	
 	//setup input buffers
 	picSrc = (AVPicture*)malloc(sizeof(AVPicture));
 	frameSrc = avcodec_alloc_frame();
@@ -95,6 +81,7 @@ RealFFMpegCodecEncoder::~RealFFMpegCodecEncoder()
 
 int RealFFMpegCodecEncoder::Encode(void* inputBuf)
 {
+	
 	avpicture_fill(picSrc,(uint8_t*)inputBuf,picConv->f1,picConv->w1,picConv->h1);
 	AVPicture *picDst = picConv->convertVideo(picSrc);
 
@@ -104,17 +91,23 @@ int RealFFMpegCodecEncoder::Encode(void* inputBuf)
 		frameSrc->linesize[i] = picDst->linesize[i];
 	}
 
-	printf("encode begin! pts=%d\n",frameSrc->pts);
 	int out_size = avcodec_encode_video(c, (uint8_t*)encBuf, encBufSize, frameSrc);
-	printf("encode finish: out_size=%d\n",out_size);
-
+	
 
 	frameSrc->pts++;
 
-	static FILE *fout = fopen("codecEncoder_output.raw","wb");
-	fwrite(encBuf,1,out_size,fout);
-	fflush(fout);
+	return out_size;
+}
 
+int RealFFMpegCodecEncoder::EncodeFrame(FFMpegFrame *pFrame)
+{
+	for (int i=0;i<3;i++)
+	{
+		frameSrc->data[i] = (uint8_t*)pFrame->data[i];
+		frameSrc->linesize[i] = pFrame->linesize[i];
+	}
+	int out_size = avcodec_encode_video(c, (uint8_t*)encBuf, encBufSize, frameSrc);
+	frameSrc->pts++;
 	return out_size;
 }
 
@@ -222,6 +215,10 @@ int FFMpegCodecEncoder::Encode(void *inputBuf)
 	return ((RealFFMpegCodecEncoder*) _delegate)->Encode(inputBuf);
 }
 
+int FFMpegCodecEncoder::EncodeFrame(FFMpegFrame *pFrame)
+{
+	return ((RealFFMpegCodecEncoder*) _delegate)->EncodeFrame(pFrame);
+}
 char* FFMpegCodecEncoder::GetEncodeBuf()
 {
 	return ((RealFFMpegCodecEncoder*) _delegate)->GetEncodeBuf();
