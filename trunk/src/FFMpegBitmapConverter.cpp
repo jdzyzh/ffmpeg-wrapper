@@ -15,7 +15,7 @@ RealFFMpegBitmapConverter::RealFFMpegBitmapConverter(
 		{
 			printf("oops!!! scaleBuf == NULL!\n");
 		}
-		
+		printf("FFMpegBitMapConverter alloc: dstBuf=%d bytes\n",scaleBufSize);
 		m_bAllocBuf = true;
 	}
 	else 
@@ -43,7 +43,7 @@ int RealFFMpegBitmapConverter::initContext(int _w1,int _h1,PixelFormat _f1,
 
 	img_convert_ctx = sws_getCachedContext(img_convert_ctx,
 		w1, h1, f1,
-		w2, h2, f2,SWS_POINT, NULL, NULL, NULL);
+		w2, h2, f2,SWS_BICUBIC, NULL, NULL, NULL);
 
 	if (!img_convert_ctx)
 		return -1;

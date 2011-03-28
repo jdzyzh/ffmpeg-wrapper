@@ -15,6 +15,7 @@ public:
 
 
 	int InitCodec(const char* codecStr, FFMpegCodecEncoderParam *param);
+	int EncodeFrame(FFMpegFrame *pFrame);
 	int Encode(void* inputBuf);
 	char* GetEncodeBuf();
 

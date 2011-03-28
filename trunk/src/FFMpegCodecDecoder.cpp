@@ -93,6 +93,7 @@ AVFrame* RealFFMpegCodecDecoder::decode(unsigned char *encData, int encDataSize,
         if (len < 0) 
 		{
             fprintf(stderr, "Error while decoding frame");
+			*encDataConsumed = -1;
             return NULL;
         }
 
