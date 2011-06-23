@@ -34,5 +34,4 @@ public:
 	AVFrame *picture;
 
 	RealFFMpegBitmapConverter *converter;
-	FPSCounter fpsCounter;
 };

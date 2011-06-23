@@ -29,7 +29,4 @@ public:
 	bool m_bAllocBuf;
 	int w1,w2,h1,h2;
 	PixelFormat f1,f2;
-	
-	FPSCounter fpsCounter;
-
 };
