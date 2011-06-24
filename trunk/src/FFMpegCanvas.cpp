@@ -121,12 +121,11 @@ void RealFFMpegCanvas::clear()
 	rgbPic.data[0] = rgb;
 	rgbPic.linesize[0] = m_w * 3;
 	
-	RealFFMpegBitmapConverter conv(m_w, m_h, PIX_FMT_RGB24, m_w, m_h, m_fmt);
-	
-	
-	AVPicture *picConverted = conv.convertVideo(&rgbPic);
+	RealFFMpegBitmapConverter *pConv = new RealFFMpegBitmapConverter(m_w, m_h, PIX_FMT_RGB24, m_w, m_h, m_fmt);
+	AVPicture *picConverted = pConv->convertVideo(&rgbPic);
 	draw(m_fmt, picConverted, 0,0, m_w, m_h);
-	free(rgb);	
+	free(rgb);
+	delete pConv;
 }
 
 FFMpegCanvas::FFMpegCanvas(int w, int h, char* fmtName)

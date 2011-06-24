@@ -61,7 +61,7 @@ RealFFMpegBitmapConverter::~RealFFMpegBitmapConverter(void)
 {
 	if (m_bAllocBuf)
 		free(scaleBuf);
-	av_free(pPicScaled);
+	free(pPicScaled);
 	sws_freeContext(img_convert_ctx);
 	
 }
