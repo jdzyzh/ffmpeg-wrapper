@@ -89,8 +89,8 @@ AVPicture *RealFFMpegBitmapConverter::convertVideo(AVPicture *pic)
 
 FFMpegBitmapConverter::FFMpegBitmapConverter(int w1,int h1,char* fmt1,int w2,int h2, char* fmt2,unsigned char *dstBuf,int dstBufSize)
 {
-	PixelFormat f1 = avcodec_get_pix_fmt(fmt1);
-	PixelFormat f2 = avcodec_get_pix_fmt(fmt2);
+	PixelFormat f1 = av_get_pix_fmt(fmt1);
+	PixelFormat f2 = av_get_pix_fmt(fmt2);
 
 	_delegate = new RealFFMpegBitmapConverter(w1,h1,f1,w2,h2,f2,dstBuf,dstBufSize);
 }
