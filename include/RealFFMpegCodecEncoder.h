@@ -1,6 +1,8 @@
 #pragma once
 
 #include <RealFFMpegBitmapConverter.h>
+#include <EncodeProfile.h>
+#include <FFMpegCodecEncoder.h>
 
 extern "C"
 {
@@ -20,7 +22,7 @@ public:
 	char* GetEncodeBuf();
 
 
-protected:
+public:
 	AVCodec *codec;
     AVCodecContext *c;
 	int encBufSize;
