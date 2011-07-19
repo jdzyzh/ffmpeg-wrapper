@@ -60,9 +60,13 @@ int FFMpegMuxer::beginMux()
 		rtpCtx->audio_codec_id = CODEC_ID_NONE;
 		rtpCtx->video_codec_id = CODEC_ID_MPEG2TS;
 		av_set_parameters(rtpCtx,0);
-		url_fopen(&rtpCtx->pb,"rtp://127.0.0.1:4000",URL_WRONLY);
-		av_write_header(rtpCtx);
 		
+		char *url = new char[1024];
+		sprintf(url,"rtp://%s:%d",rtpOutputAddr,rtpOutputPort);
+		printf("will output to url:%s\n",url);
+		ret = url_fopen(&rtpCtx->pb,url,URL_WRONLY);
+		ret = av_write_header(rtpCtx);
+		delete url;
 
 		/*
 		if (url_fopen(&formatCtx->pb, formatCtx->filename, URL_WRONLY) < 0) 
@@ -103,16 +107,15 @@ int FFMpegMuxer::addVideoFrame(void* encodedData,int encodedDataSize,int64_t pts
     int ret = av_interleaved_write_frame(formatCtx, &pkt);
 
 	
-	uint8_t *destbuff;
-	int len = url_close_dyn_buf(ioctx,&destbuff);
+	int len = url_close_dyn_buf(ioctx,&mpegtsOutputBuf);
 	
 	AVPacket tspkt;
 	av_init_packet(&tspkt);
 	tspkt.size = len;
-	tspkt.data = destbuff;
-	av_interleaved_write_frame(rtpCtx,&tspkt);
+	tspkt.data = mpegtsOutputBuf;
+	ret = av_interleaved_write_frame(rtpCtx,&tspkt);
 	
-	av_free(destbuff);
+	av_free(mpegtsOutputBuf);
 	url_open_dyn_buf(&ioctx);
 	formatCtx->pb = ioctx;
 	printf("write rtp packet: %d bytes\n",len);
@@ -122,5 +125,19 @@ int FFMpegMuxer::addVideoFrame(void* encodedData,int encodedDataSize,int64_t pts
 
 int FFMpegMuxer::endMux()
 {
-	return av_write_trailer(formatCtx);
+	av_write_trailer(formatCtx);
+	//int len = url_close_dyn_buf(&ioctx,&mpegtsOutputBuf);
+	av_write_trailer(rtpCtx);
+	return 0;
+	
+}
+
+void FFMpegMuxer::setRTPOutputAddr(const char *addr)
+{
+	strcpy(rtpOutputAddr,addr);
+}
+
+void FFMpegMuxer::setRTPOutputPort(int port)
+{
+	rtpOutputPort = port;
 }
