@@ -84,8 +84,11 @@ AVFrame* RealFFMpegCodecDecoder::decode(unsigned char *encData, int encDataSize,
 
     while (encDataSize > 0) 
 	{
-        len = avcodec_decode_video(ctx, picture, &got_picture,
-                                   inbuf_ptr, encDataSize);
+		AVPacket pkt;
+		pkt.data = inbuf_ptr;
+		pkt.size = encDataSize;
+		len = avcodec_decode_video2(ctx,picture,&got_picture,&pkt);
+        
 		videoWidth = ctx->width;
 		videoHeight = ctx->height;
 		videoPixFormat = ctx->pix_fmt;

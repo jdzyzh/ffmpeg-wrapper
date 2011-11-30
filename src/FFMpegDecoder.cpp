@@ -101,9 +101,9 @@ AVInfo* FFMpegDecoder::openFile(char* fileName)
 
     for(unsigned int i=0; i<pFormatCtx->nb_streams; i++)
 	{
-        if( pFormatCtx->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) 
+        if( pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) 
             videoStream = i;
-        else if( pFormatCtx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO) 
+        else if( pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) 
             audioStream = i;
 	}
     if( videoStream == -1 && audioStream == -1 )
@@ -199,9 +199,8 @@ AVFrame* FFMpegDecoder::decodeVideo(AVPacket *encodedPacket)
 	int bytesDecoded = -1;
 	
 	my_video_pkt_pts = encodedPacket->pts;
-	fpsCounter.BeforeProcess();
 	bytesDecoded = avcodec_decode_video2(pVideoCodecCtx,pDecodedFrame,&gotPic,encodedPacket);
-	fpsCounter.AfterProcess();
+	
 
 
 	if (encodedPacket->dts == AV_NOPTS_VALUE && pDecodedFrame->opaque && *(uint64_t*)pDecodedFrame->opaque != AV_NOPTS_VALUE)
@@ -221,7 +220,6 @@ AVFrame* FFMpegDecoder::decodeVideo(AVPacket *encodedPacket)
 	}	
 	if (gotPic)
 	{
-		fpsCounter.FrameFinished();
 		syncVideoPTS();
 		return pDecodedFrame;
 	}	

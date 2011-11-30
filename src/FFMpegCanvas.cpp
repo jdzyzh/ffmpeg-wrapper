@@ -62,6 +62,8 @@ int RealFFMpegCanvas::draw(PixelFormat fmt,AVPicture *pPic, int x, int y, int im
 	unsigned char* ptrU2 = pPic->data[1];
 	unsigned char* ptrV2 = pPic->data[2];
 	
+	if (imageW > m_w)
+		imageW = m_w;
 	for (int h=0;h<imageH;h++)
 	{
 		
