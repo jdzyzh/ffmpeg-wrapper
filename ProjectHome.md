@@ -1,0 +1,1 @@
+ffmpeg-wrapper provides C++ wrapper classes to do decode/encode/colorspace conversion tasks with ffmpeg
